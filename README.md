@@ -11,6 +11,9 @@ This application is optimized for easy deployment to Vercel with Neon PostgreSQL
 2. **Set up Neon Database**:
    - Create a new project at [neon.tech](https://neon.tech)
    - Copy your database connection string
+  
+> [!NOTE]  
+> You can also skip this step by setting up a 
 
 3. **Deploy to Vercel**:
    - Connect your GitHub repository to Vercel
@@ -37,12 +40,8 @@ This application leverages modern web development tools and frameworks:
 
 ## ✨ Key Features
 
-- 🔐 **Full Authentication System** - Email/password auth with Better Auth
-- 🌐 **OIDC Provider** - Custom OpenID Connect implementation
-- 🗄️ **Type-Safe Database** - PostgreSQL with Drizzle ORM and full TypeScript support
-- 📡 **Remote Functions** - SvelteKit's experimental remote functions for type-safe client-server communication
-- 🎨 **Modern UI** - Responsive design with Skeleton UI components
-- 📚 **OpenAPI Documentation** - Auto-generated API documentation
+- 🔐 **Full Authentication System** - Email/password auth with Better Auth. This enables Client Credentials, Authorization Code, and Dynamic Client Registration flows.
+- 📚 **OpenAPI Documentation** - Auto-generated API documentation (`/api/openapi.yaml`)
 - 🤖 **AI-Powered Development** - Optimized for efficient development with Claude Code
 
 ## 🏗 AI-Powered Development
@@ -61,7 +60,7 @@ Simply use [Claude Code](https://claude.ai/code) with this repository for intell
 
 ### Prerequisites
 
-- Node.js 18+ or Bun 1.2+
+- Bun 1.2+
 - PostgreSQL database (local or hosted)
 
 ### Setup
@@ -100,7 +99,7 @@ Simply use [Claude Code](https://claude.ai/code) with this repository for intell
 
 Visit `http://localhost:5173` to see your application running.
 
-## 🏛 Architecture Overview
+## 🏛 Architecture Notes
 
 ### Remote Functions
 This project uses SvelteKit's experimental remote functions feature for type-safe server-client communication:
@@ -147,7 +146,3 @@ The application includes auto-generated OpenAPI documentation. After starting th
 ## 🤝 Contributing
 
 This project follows modern development practices with comprehensive linting, formatting, and type checking. The `CLAUDE.md` configuration ensures consistent development patterns when using AI assistance.
-
----
-
-Built with ❤️ using SvelteKit and modern web technologies.
