@@ -1,10 +1,10 @@
-import { authClient } from '$lib/auth-client';
 import { fail, redirect } from '@sveltejs/kit';
 import { APIError } from 'better-auth/api';
 import { message, superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import type { Actions } from './$types';
 import { SignUpSchema } from './data.schema';
+import { auth } from '$lib/auth';
 
 export const actions: Actions = {
   default: async ({ request, locals }) => {
@@ -14,10 +14,12 @@ export const actions: Actions = {
     if (!form.valid) return fail(400, { form });
 
     try {
-      const result = await authClient.signUp.email({
-        name: form.data.name,
-        email: form.data.email,
-        password: form.data.password
+      const result = await auth.api.signUpEmail({
+        body: {
+          name: form.data.name,
+          email: form.data.email,
+          password: form.data.password
+        }
       });
       locals.log('Sign up successful:', result);
     } catch (error) {
