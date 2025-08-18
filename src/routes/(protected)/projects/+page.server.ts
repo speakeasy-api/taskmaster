@@ -11,5 +11,9 @@ export const load: PageServerLoad = async ({ request, parent }) => {
 
   const parentData = await parent();
 
+  if (parentData.projects.length === 0) {
+    return;
+  }
+
   redirect(302, 'projects/' + parentData.projects[0].id);
 };
