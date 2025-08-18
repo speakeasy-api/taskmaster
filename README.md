@@ -1,6 +1,6 @@
 # Speakeasy Demo Application
 
-A modern SvelteKit application designed to demonstrate Speakeasy products and features. This project showcases best practices for building full-stack web applications with authentication, database integration, and API development.
+A modern SvelteKit application designed to demonstrate Speakeasy products and features.
 
 ## 🚀 Quick Deploy to Vercel
 
