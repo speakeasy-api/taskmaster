@@ -4,6 +4,8 @@
   import { zod } from 'sveltekit-superforms/adapters';
   import { SignInSchema } from './data.schema.js';
   import { goto } from '$app/navigation';
+  import TextInput from '$lib/ui/inputs/TextInput.svelte';
+  import PasswordInput from '$lib/ui/inputs/PasswordInput.svelte';
 
   const { form, errors, enhance, submitting, message } = superForm(defaults(zod(SignInSchema)), {
     validators: zod(SignInSchema),
@@ -45,37 +47,30 @@
     </div>
   {/if}
 
-  <label class="label">
-    <span class="label-text">Email Address</span>
-    <input
-      type="email"
-      name="email"
-      class="input"
-      class:input-error={$errors.email}
-      placeholder="you@email.com"
-      bind:value={$form.email}
-      disabled={$submitting}
-      required />
-    {#if $errors.email}
+  <TextInput
+    type="email"
+    label="Email"
+    name="email"
+    placeholder="you@email.com  "
+    bind:value={$form.email}
+    disabled={$submitting}
+    required>
+    {#snippet error()}
       <span class="text-sm text-error-500">{$errors.email}</span>
-    {/if}
-  </label>
+    {/snippet}
+  </TextInput>
 
-  <label class="label">
-    <span class="label-text">Password</span>
-    <input
-      type="password"
-      name="password"
-      class="input"
-      class:input-error={$errors.password}
-      placeholder="Enter a strong password"
-      bind:value={$form.password}
-      disabled={$submitting}
-      required />
-    {#if $errors.password}
+  <PasswordInput
+    label="Password"
+    name="password"
+    placeholder="Enter your password"
+    bind:value={$form.password}
+    disabled={$submitting}
+    required>
+    {#snippet error()}
       <span class="text-sm text-error-500">{$errors.password}</span>
-    {/if}
-  </label>
+    {/snippet}
+  </PasswordInput>
 
   <button class="btn w-full preset-filled" type="submit" disabled={$submitting}>
     {$submitting ? 'Signing In...' : 'Sign In'}

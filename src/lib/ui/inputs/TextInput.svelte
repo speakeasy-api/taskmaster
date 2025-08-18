@@ -4,6 +4,7 @@
   import { cn } from '$lib/util';
 
   type Props = Omit<HTMLInputAttributes, 'type'> & {
+    type?: 'text' | 'email';
     label: string;
     name: string;
     error?: Snippet;
@@ -11,6 +12,7 @@
   };
 
   let {
+    type = 'text',
     label,
     error: errors,
     status,
@@ -23,7 +25,7 @@
 <label class="label">
   {label}
   <input
-    type="text"
+    {type}
     class={cn('input placeholder:text-surface-400-600 read-only:bg-surface-100/50', className)}
     class:input-error={status === 'error'}
     {...rest}

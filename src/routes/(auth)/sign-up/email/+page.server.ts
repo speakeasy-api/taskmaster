@@ -18,10 +18,12 @@ export const actions: Actions = {
         body: {
           name: form.data.name,
           email: form.data.email,
-          password: form.data.password
-        }
+          password: form.data.password,
+          rememberMe: false
+        },
+        asResponse: true
       });
-      locals.log('Sign up successful:', result);
+      locals.log('Sign up successful for', form.data.email);
     } catch (error) {
       locals.logError('Sign up error:', error);
 
