@@ -1,0 +1,605 @@
+openapi: 3.0.3
+info:
+  title: Task Master API
+  description: API for managing user tasks with OAuth authentication in Task Master
+  version: 1.0.0
+  contact:
+    name: API Support
+  license:
+    name: MIT
+
+servers:
+  - url: https://mcp-auth-demo.vercel.app/api
+    description: Deployed server
+  - url: http://localhost:5173/api
+    description: Local development server
+
+security:
+  - oauthToken: []
+
+components:
+  securitySchemes:
+    oauthToken:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: https://mcp-auth-demo.vercel.app/api/oauth2/authorize
+          tokenUrl: /oauth2/token
+          scopes:
+            - openid
+            - profile
+            - email
+
+  schemas:
+    TaskStatus:
+      type: string
+      enum:
+        - backlog
+        - triage
+        - todo
+        - in_progress
+        - done
+        - canceled
+      description: Current status of the task
+      example: 'todo'
+
+    Task:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier for the task
+          example: '550e8400-e29b-41d4-a716-446655440000'
+        title:
+          type: string
+          maxLength: 255
+          description: Title of the task
+          example: 'Complete project documentation'
+        description:
+          type: string
+          maxLength: 500
+          description: Detailed description of the task
+          example: 'Write comprehensive API documentation including examples'
+        created_by:
+          type: string
+          description: ID of the user who created this task
+          example: 'user_123456'
+        project_id:
+          type: string
+          format: uuid
+          description: ID of the project this task belongs to (optional)
+          example: '6ba7b810-9dad-11d1-80b4-00c04fd430c8'
+        status:
+          $ref: '#/components/schemas/TaskStatus'
+        created_at:
+          type: string
+          format: date-time
+          description: When the task was created
+          example: '2024-01-15T10:30:00Z'
+        updated_at:
+          type: string
+          format: date-time
+          description: When the task was last updated
+          example: '2024-01-15T14:45:00Z'
+      required:
+        - id
+        - title
+        - description
+        - created_by
+
+    Project:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier for the project
+          example: '6ba7b810-9dad-11d1-80b4-00c04fd430c8'
+        name:
+          type: string
+          maxLength: 255
+          description: Name of the project
+          example: 'Website Redesign'
+        description:
+          type: string
+          maxLength: 500
+          description: Detailed description of the project
+          example: 'Complete redesign of the company website with modern UI/UX'
+        created_by:
+          type: string
+          description: ID of the user who created this project
+          example: 'user_123456'
+        created_at:
+          type: string
+          format: date-time
+          description: When the project was created
+          example: '2024-01-15T09:00:00Z'
+        updated_at:
+          type: string
+          format: date-time
+          description: When the project was last updated
+          example: '2024-01-15T09:00:00Z'
+      required:
+        - id
+        - name
+        - description
+
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Error message
+          example: 'Unauthorized access'
+        code:
+          type: integer
+          description: HTTP status code
+          example: 401
+
+paths:
+  /tasks:
+    post:
+      operationId: createTask
+      summary: Create a new task
+      description: Creates a new task for the authenticated user in Task Master
+      security:
+        - oauthToken: []
+      requestBody:
+        description: Task data for creation
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  minLength: 1
+                  maxLength: 255
+                  description: Title of the task
+                  example: 'Complete project documentation'
+                description:
+                  type: string
+                  minLength: 1
+                  maxLength: 500
+                  description: Detailed description of the task
+                  example: 'Write comprehensive API documentation including examples'
+                project_id:
+                  type: string
+                  format: uuid
+                  description: ID of the project this task belongs to (optional)
+                  example: '6ba7b810-9dad-11d1-80b4-00c04fd430c8'
+                status:
+                  $ref: '#/components/schemas/TaskStatus'
+              required:
+                - title
+                - description
+            examples:
+              basic_task:
+                summary: Basic task creation
+                value:
+                  title: 'Complete project setup'
+                  description: 'Initialize the project with all necessary dependencies'
+              task_with_project:
+                summary: Task with project assignment
+                value:
+                  title: 'Write comprehensive tests'
+                  description: 'Add test coverage for all endpoints'
+                  project_id: '6ba7b810-9dad-11d1-80b4-00c04fd430c8'
+                  status: 'todo'
+      responses:
+        '201':
+          description: Task successfully created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+              example:
+                id: '550e8400-e29b-41d4-a716-446655440000'
+                title: 'Complete project documentation'
+                description: 'Write comprehensive API documentation including examples'
+                created_by: 'user_123456'
+                project_id: '6ba7b810-9dad-11d1-80b4-00c04fd430c8'
+                status: 'todo'
+                created_at: '2024-01-15T10:30:00Z'
+                updated_at: '2024-01-15T10:30:00Z'
+        '400':
+          description: Bad Request - Invalid request data, JSON format, or token format
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Invalid request data'
+                  errors:
+                    type: object
+                    description: Field-specific validation errors
+                    example:
+                      title: ['Title is required']
+                      description: ['Description must be 500 characters or less']
+        '401':
+          description: Unauthorized - Invalid or missing authentication token
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: 'Unauthorized'
+        '500':
+          description: Internal Server Error - Failed to create task
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Failed to create task'
+    get:
+      operationId: getTasks
+      summary: Get all tasks for authenticated user
+      description: Retrieves all tasks belonging to the authenticated user in Task Master. Optionally filter by project.
+      security:
+        - oauthToken: []
+      parameters:
+        - name: project_id
+          in: query
+          required: false
+          description: Filter tasks by project ID
+          schema:
+            type: string
+            format: uuid
+            example: '6ba7b810-9dad-11d1-80b4-00c04fd430c8'
+      responses:
+        '200':
+          description: Successfully retrieved tasks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Task'
+              example:
+                - id: '550e8400-e29b-41d4-a716-446655440000'
+                  title: 'Complete project setup'
+                  description: 'Initialize the project with all necessary dependencies'
+                  created_by: 'user_123456'
+                  project_id: '6ba7b810-9dad-11d1-80b4-00c04fd430c8'
+                  status: 'todo'
+                  created_at: '2024-01-15T10:30:00Z'
+                  updated_at: '2024-01-15T10:30:00Z'
+                - id: '660f9500-f39c-52e5-b827-557766551111'
+                  title: 'Write comprehensive tests'
+                  description: 'Add test coverage for all Task Master endpoints'
+                  created_by: 'user_123456'
+                  project_id: '6ba7b810-9dad-11d1-80b4-00c04fd430c8'
+                  status: 'in_progress'
+                  created_at: '2024-01-15T11:00:00Z'
+                  updated_at: '2024-01-15T14:30:00Z'
+        '401':
+          description: Unauthorized - Invalid or missing authentication token
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: 'Unauthorized'
+        '400':
+          description: Bad Request - Invalid token format
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: 'Invalid token'
+
+  /tasks/{id}:
+    put:
+      operationId: updateTask
+      summary: Update a specific task
+      description: Updates a task by ID for the authenticated user in Task Master. All fields are optional for partial updates.
+      security:
+        - oauthToken: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The UUID of the task to update
+          schema:
+            type: string
+            format: uuid
+            example: '550e8400-e29b-41d4-a716-446655440000'
+      requestBody:
+        description: Task fields to update (all optional)
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  maxLength: 255
+                  description: Updated title of the task
+                  example: 'Updated task title'
+                description:
+                  type: string
+                  maxLength: 500
+                  description: Updated description of the task
+                  example: 'Updated task description with more details'
+                status:
+                  $ref: '#/components/schemas/TaskStatus'
+                project_id:
+                  type: string
+                  format: uuid
+                  description: Updated project ID for the task
+                  example: '6ba7b810-9dad-11d1-80b4-00c04fd430c8'
+            examples:
+              partial_update:
+                summary: Partial update example
+                value:
+                  status: 'in_progress'
+              full_update:
+                summary: Full update example
+                value:
+                  title: 'Complete project documentation'
+                  description: 'Write comprehensive API documentation with examples'
+                  status: 'in_progress'
+                  project_id: '6ba7b810-9dad-11d1-80b4-00c04fd430c8'
+      responses:
+        '200':
+          description: Task successfully updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+              example:
+                id: '550e8400-e29b-41d4-a716-446655440000'
+                title: 'Complete project documentation'
+                description: 'Write comprehensive API documentation with examples'
+                created_by: 'user_123456'
+                project_id: '6ba7b810-9dad-11d1-80b4-00c04fd430c8'
+                status: 'in_progress'
+                created_at: '2024-01-15T10:30:00Z'
+                updated_at: '2024-01-15T15:45:00Z'
+        '400':
+          description: Bad Request - Invalid request data, token format, or no fields provided
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Invalid request data'
+                  errors:
+                    type: object
+                    description: Field-specific validation errors
+                    example:
+                      status: ['Invalid enum value. Expected backlog | triage | todo | in_progress | done | canceled']
+        '401':
+          description: Unauthorized - Invalid or missing authentication token
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: 'Unauthorized'
+        '404':
+          description: Task not found or not owned by authenticated user
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: 'Not Found'
+    delete:
+      operationId: deleteTask
+      summary: Delete a specific task
+      description: Deletes a task by ID for the authenticated user in Task Master
+      security:
+        - oauthToken: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The UUID of the task to delete
+          schema:
+            type: string
+            format: uuid
+            example: '550e8400-e29b-41d4-a716-446655440000'
+      responses:
+        '204':
+          description: Task successfully deleted
+        '401':
+          description: Unauthorized - Invalid or missing authentication token
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: 'Unauthorized'
+        '400':
+          description: Bad Request - Invalid token format
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: 'Invalid token'
+        '404':
+          description: Task not found or not owned by authenticated user
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: 'Not Found'
+
+  /projects:
+    post:
+      operationId: createProject
+      summary: Create a new project
+      description: Creates a new project for the authenticated user in Task Master
+      security:
+        - oauthToken: []
+      requestBody:
+        description: Project data for creation
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                  maxLength: 255
+                  description: Name of the project
+                  example: 'Website Redesign'
+                description:
+                  type: string
+                  minLength: 1
+                  maxLength: 500
+                  description: Detailed description of the project
+                  example: 'Complete redesign of the company website with modern UI/UX'
+              required:
+                - name
+                - description
+            examples:
+              basic_project:
+                summary: Basic project creation
+                value:
+                  name: 'Mobile App Development'
+                  description: 'Build a cross-platform mobile application for Task Master'
+      responses:
+        '201':
+          description: Project successfully created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+              example:
+                id: '6ba7b810-9dad-11d1-80b4-00c04fd430c8'
+                name: 'Website Redesign'
+                description: 'Complete redesign of the company website with modern UI/UX'
+                created_by: 'user_123456'
+                created_at: '2024-01-15T09:00:00Z'
+                updated_at: '2024-01-15T09:00:00Z'
+        '400':
+          description: Bad Request - Invalid request data, JSON format, or token format
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Invalid request data'
+                  errors:
+                    type: object
+                    description: Field-specific validation errors
+                    example:
+                      name: ['Name is required']
+                      description: ['Description must be 500 characters or less']
+        '401':
+          description: Unauthorized - Invalid or missing authentication token
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: 'Unauthorized'
+        '500':
+          description: Internal Server Error - Failed to create project
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Failed to create project'
+    get:
+      operationId: getProjects
+      summary: Get all projects for authenticated user
+      description: Retrieves all projects belonging to the authenticated user in Task Master
+      security:
+        - oauthToken: []
+      responses:
+        '200':
+          description: Successfully retrieved projects
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Project'
+              example:
+                - id: '6ba7b810-9dad-11d1-80b4-00c04fd430c8'
+                  name: 'Website Redesign'
+                  description: 'Complete redesign of the company website with modern UI/UX'
+                  created_by: 'user_123456'
+                  created_at: '2024-01-15T09:00:00Z'
+                  updated_at: '2024-01-15T09:00:00Z'
+                - id: '7cb8c920-aeac-22f2-91c5-668877662222'
+                  name: 'Mobile App Development'
+                  description: 'Build a cross-platform mobile application for Task Master'
+                  created_by: 'user_123456'
+                  created_at: '2024-01-15T10:00:00Z'
+                  updated_at: '2024-01-15T11:30:00Z'
+        '401':
+          description: Unauthorized - Invalid or missing authentication token
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: 'Unauthorized'
+        '400':
+          description: Bad Request - Invalid token format
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: 'Invalid token'
+
+  /projects/{id}:
+    delete:
+      operationId: deleteProject
+      summary: Delete a specific project
+      description: Deletes a project by ID for the authenticated user in Task Master. Associated tasks will be automatically deleted due to cascade delete.
+      security:
+        - oauthToken: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The UUID of the project to delete
+          schema:
+            type: string
+            format: uuid
+            example: '6ba7b810-9dad-11d1-80b4-00c04fd430c8'
+      responses:
+        '204':
+          description: Project successfully deleted
+        '401':
+          description: Unauthorized - Invalid or missing authentication token
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: 'Unauthorized'
+        '400':
+          description: Bad Request - Invalid token format
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: 'Invalid token'
+        '404':
+          description: Project not found or not owned by authenticated user
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: 'Not Found'
+
+tags:
+  - name: tasks
+    description: Operations related to task management in Task Master
+  - name: projects
+    description: Operations related to project management in Task Master
