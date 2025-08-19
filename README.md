@@ -11,9 +11,9 @@ This application is optimized for easy deployment to Vercel with Neon PostgreSQL
 2. **Set up Neon Database**:
    - Create a new project at [neon.tech](https://neon.tech)
    - Copy your database connection string
-  
+
 > [!NOTE]  
-> You can also skip this step by setting up a 
+> You can also skip this step by setting up a
 
 3. **Deploy to Vercel**:
    - Connect your GitHub repository to Vercel
@@ -50,7 +50,7 @@ This project includes a comprehensive `CLAUDE.md` file that enables efficient AI
 
 - Complete project architecture understanding
 - Development command shortcuts
-- Database operation guidance  
+- Database operation guidance
 - API development best practices
 - Remote functions implementation patterns
 
@@ -66,6 +66,7 @@ Simply use [Claude Code](https://claude.ai/code) with this repository for intell
 ### Setup
 
 1. **Clone and install dependencies**:
+
    ```bash
    git clone <your-repo-url>
    cd sveltekit-betterauth
@@ -73,21 +74,24 @@ Simply use [Claude Code](https://claude.ai/code) with this repository for intell
    ```
 
 2. **Configure environment variables**:
+
    ```bash
    cp .env.example .env
    ```
-   
+
    Add your database URL:
+
    ```env
    DATABASE_URL=postgresql://username:password@localhost:5432/database_name
    ```
 
 3. **Set up the database**:
+
    ```bash
    # Generate and run migrations
    bunx drizzle-kit generate
    bunx drizzle-kit migrate
-   
+
    # Optional: Open Drizzle Studio
    bunx drizzle-kit studio
    ```
@@ -102,19 +106,22 @@ Visit `http://localhost:5173` to see your application running.
 ## 🏛 Architecture Notes
 
 ### Remote Functions
+
 This project uses SvelteKit's experimental remote functions feature for type-safe server-client communication:
 
 - **Domain-level functions**: `/lib/remote-fns/[domain].remote.ts`
-- **Route-specific functions**: `/routes/.../[route].remote.ts`  
+- **Route-specific functions**: `/routes/.../[route].remote.ts`
 - **Validation utilities**: Zod schemas with error handling helpers
 
 ### Authentication Flow
+
 - **Better Auth Server**: Configured in `src/lib/auth.ts`
 - **SvelteKit Integration**: Handled via `src/hooks.server.ts`
 - **Database Schemas**: Auth tables in `src/lib/db/schemas/auth.ts`
 - **OIDC Provider**: Custom implementation in `src/lib/oidc-provider/`
 
 ### Database Structure
+
 - User management and authentication tables
 - OAuth applications and tokens
 - Session management with caching
@@ -123,11 +130,13 @@ This project uses SvelteKit's experimental remote functions feature for type-saf
 ## 📋 Available Commands
 
 ### Development
+
 - `bun dev` - Start development server
 - `bun build` - Build for production
 - `bun preview` - Preview production build
 
 ### Code Quality
+
 - `bun run check` - TypeScript checking with svelte-kit sync
 - `bun run check:watch` - Continuous type checking
 - `bun run lint` - Lint with Prettier + ESLint
@@ -135,8 +144,9 @@ This project uses SvelteKit's experimental remote functions feature for type-saf
 - `bun run test` - Run tests with Vitest
 
 ### Database
+
 - `bunx drizzle-kit generate` - Generate migrations
-- `bunx drizzle-kit migrate` - Run migrations  
+- `bunx drizzle-kit migrate` - Run migrations
 - `bunx drizzle-kit studio` - Open Drizzle Studio
 
 ## 📖 API Documentation
