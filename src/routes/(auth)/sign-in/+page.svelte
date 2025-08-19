@@ -2,7 +2,7 @@
   import { authClient } from '$lib/auth-client.js';
   import { defaults, setMessage, superForm } from 'sveltekit-superforms';
   import { zod } from 'sveltekit-superforms/adapters';
-  import { SignInSchema } from './data.schema.js';
+  import { SignInSchema } from './page.schema.js';
   import { goto } from '$app/navigation';
   import TextInput from '$lib/ui/inputs/TextInput.svelte';
   import PasswordInput from '$lib/ui/inputs/PasswordInput.svelte';

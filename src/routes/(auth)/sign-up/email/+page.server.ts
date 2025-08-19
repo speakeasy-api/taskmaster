@@ -4,7 +4,7 @@ import { APIError } from 'better-auth/api';
 import { message, superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import type { Actions } from './$types';
-import { SignUpSchema } from './data.schema';
+import { SignUpSchema } from './page.schemas';
 
 export const actions: Actions = {
   default: async ({ request, locals }) => {

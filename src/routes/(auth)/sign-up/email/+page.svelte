@@ -1,7 +1,7 @@
 <script lang="ts">
   import { defaults, superForm } from 'sveltekit-superforms';
   import { zod } from 'sveltekit-superforms/adapters';
-  import { SignUpSchema } from './data.schema.js';
+  import { SignUpSchema } from './page.schemas.js';
   import TextInput from '$lib/ui/inputs/TextInput.svelte';
   import PasswordInput from '$lib/ui/inputs/PasswordInput.svelte';
 
