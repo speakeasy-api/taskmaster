@@ -4,10 +4,7 @@ declare global {
   namespace App {
     // interface Error {}
     interface Locals {
-      validateSession: () => Promise<{
-        session: import('better-auth').Session;
-        user: import('better-auth').User;
-      }>;
+      validateSession: () => Promise<GetSessionResponse>;
 
       log: (...args: unknown[]) => void;
       logError: (...args: unknown[]) => void;
@@ -20,6 +17,10 @@ declare global {
     // interface Platform {}
   }
 
+  type GetSessionResponse = {
+    session: import('better-auth').Session;
+    user: import('better-auth').User;
+  };
   type FlashMessage = { title: string; description: string; createdAt: number };
   type StoreValue<T> = T extends import('svelte/store').Readable<infer U> ? U : never;
 }

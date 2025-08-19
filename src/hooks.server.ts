@@ -5,13 +5,24 @@ import { svelteKitHandler } from 'better-auth/svelte-kit';
 import { randomBytes } from 'crypto';
 
 export const handle: Handle = async ({ event, resolve }) => {
+  let validatedSession: GetSessionResponse | null = null;
   event.locals.validateSession = async () => {
+    if (validatedSession) {
+      return validatedSession;
+    }
+
     const session = await auth.api.getSession({ headers: event.request.headers });
     if (!session) {
       error(401, 'Unauthorized');
     }
+
+    validatedSession = session;
     return session;
   };
+
+  if (event.route.id?.startsWith('/(protected)')) {
+    await event.locals.validateSession();
+  }
 
   event.locals.log = (...args: unknown[]) => {
     console.log(
