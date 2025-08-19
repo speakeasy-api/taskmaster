@@ -35,6 +35,11 @@ export const actions: Actions = {
       return message(form, 'An unexpected error occurred', { status: 500 });
     }
 
+    locals.sendFlashMessage({
+      title: 'Success!',
+      description: 'Sign up successful! Please sign in to continue.'
+    });
+
     locals.log('Sign up successful, redirecting to /sign-in');
     redirect(302, '/sign-in');
   }

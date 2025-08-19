@@ -2,6 +2,7 @@ import { authClient } from '$lib/auth-client';
 import type { Session, User } from 'better-auth';
 import type { BetterFetchError } from 'better-auth/svelte';
 import { getContext, onMount, setContext } from 'svelte';
+import { createToaster } from '@skeletonlabs/skeleton-svelte';
 
 class AuthState {
   user: User | null = $state(null);
@@ -29,7 +30,10 @@ class AuthState {
 }
 
 export class AppState {
-  private constructor(public auth: AuthState = new AuthState()) {
+  private constructor(
+    public auth: AuthState = new AuthState(),
+    public toaster = createToaster({ max: 5, overlap: true, placement: 'bottom-end' })
+  ) {
     // Private constructor to prevent instantiation
   }
 
@@ -43,5 +47,9 @@ export class AppState {
 
   public static getAuth(): AuthState {
     return AppState.get().auth;
+  }
+
+  public static getToaster(): ReturnType<typeof createToaster> {
+    return AppState.get().toaster;
   }
 }
