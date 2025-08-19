@@ -6,8 +6,3 @@ export const RegisterOAuthAppRequest = z.object({
   redirectUrl: z.string().url('Invalid URL').optional()
 });
 export type RegisterOAuthAppRequest = z.infer<typeof RegisterOAuthAppRequest>;
-
-export const DeleteOAuthAppRequest = z.object({
-  id: z.string().min(1, 'ID is required')
-});
-export type DeleteOAuthAppRequest = z.infer<typeof DeleteOAuthAppRequest>;

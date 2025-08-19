@@ -1,27 +1,10 @@
-import { command, form, getRequestEvent } from '$app/server';
+import { form, getRequestEvent } from '$app/server';
 import { db } from '$lib/db';
 import { project, task } from '$lib/db/schemas/schema';
 import { fail, redirect } from '@sveltejs/kit';
 import { and, eq } from 'drizzle-orm';
-import {
-  CreateProjectRequest,
-  CreateTaskRequest,
-  DeleteProjectRequest,
-  DeleteTaskRequest,
-  UpdateTaskStatusRequest
-} from './projects.schemas';
-import { validateForm } from './utils';
-
-export const createProject = command(CreateProjectRequest, async (request) => {
-  const { user } = await getRequestEvent().locals.validateSession();
-
-  const [result] = await db
-    .insert(project)
-    .values({ ...request, created_by: user.id })
-    .returning();
-
-  return result;
-});
+import { DeleteProjectRequest, DeleteTaskRequest, UpdateTaskStatusRequest } from './page.schemas';
+import { validateForm } from '$lib/util.server';
 
 export const deleteProject = form(async (formData) => {
   const { user } = await getRequestEvent().locals.validateSession();
@@ -40,22 +23,6 @@ export const deleteProject = form(async (formData) => {
   }
 
   redirect(303, '/projects');
-});
-
-export const createTask = command(CreateTaskRequest, async (request) => {
-  const { user } = await getRequestEvent().locals.validateSession();
-
-  const [newTask] = await db
-    .insert(task)
-    .values({
-      title: request.title,
-      description: request.description,
-      project_id: request.project_id,
-      created_by: user.id
-    })
-    .returning();
-
-  return newTask;
 });
 
 export const deleteTask = form(async (formData) => {

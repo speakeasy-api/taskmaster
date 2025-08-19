@@ -17,7 +17,7 @@ export const task = pgTable('task', {
   description: varchar({ length: 500 }).notNull(),
   created_by: text()
     .notNull()
-    .references(() => user.id, { onDelete: 'no action' }),
+    .references(() => user.id, { onDelete: 'cascade' }),
   project_id: uuid().references(() => project.id, { onDelete: 'cascade' }),
   status: taskStatusEnum(),
   created_at: timestamp({ withTimezone: true, mode: 'string' })
@@ -44,7 +44,7 @@ export const project = pgTable('project', {
   id: uuid().defaultRandom().primaryKey(),
   name: varchar({ length: 255 }).notNull(),
   description: varchar({ length: 500 }).notNull(),
-  created_by: text().references(() => user.id),
+  created_by: text().references(() => user.id, { onDelete: 'cascade' }),
   created_at: timestamp({ withTimezone: true, mode: 'string' })
     .default(sql`(now() AT TIME ZONE 'utc'::text)`)
     .notNull(),

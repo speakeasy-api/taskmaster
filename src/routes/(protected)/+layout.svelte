@@ -1,6 +1,8 @@
 <script lang="ts">
   import PlusIcon from '@lucide/svelte/icons/plus';
   import SquareTerminal from '@lucide/svelte/icons/square-terminal';
+  import CircleUserIcon from '@lucide/svelte/icons/circle-user';
+
   import type { LayoutProps } from './$types';
   import CreateProjectModal from './_modals/CreateProjectModal.svelte';
   import UserAccountPopover from '$lib/ui/UserAccountPopover.svelte';
@@ -55,6 +57,7 @@
         <p class="p-2 text-sm tracking-wide text-surface-500">SETTINGS</p>
         <ul class="space-y-1">
           {@render navLink('/developer', 'Developer', SquareTerminal)}
+          {@render navLink('/account', 'Account', CircleUserIcon)}
         </ul>
       </section>
     </div>

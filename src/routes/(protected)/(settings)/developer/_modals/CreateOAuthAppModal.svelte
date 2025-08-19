@@ -1,12 +1,12 @@
 <script lang="ts">
-  import { Modal } from '@skeletonlabs/skeleton-svelte';
+  import ActionCard from '$lib/ui/cards/ActionCard.svelte';
   import TextInput from '$lib/ui/inputs/TextInput.svelte';
+  import { Modal } from '@skeletonlabs/skeleton-svelte';
+  import type { ComponentProps } from 'svelte';
   import { defaults, superForm } from 'sveltekit-superforms';
   import { zod } from 'sveltekit-superforms/adapters';
-  import type { ComponentProps } from 'svelte';
-  import { registerOAuthApp } from '$lib/remote-fns/developer.remote';
-  import { RegisterOAuthAppRequest } from '$lib/remote-fns/developer.schemas';
-  import ActionCard from '$lib/ui/cards/ActionCard.svelte';
+  import { registerOAuthApp } from './CreateOAuthAppModal.remote';
+  import { RegisterOAuthAppRequest } from './CreateOAuthAppModal.schemas';
 
   type Props = {
     open?: boolean;

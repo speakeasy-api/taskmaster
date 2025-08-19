@@ -1,9 +1,9 @@
 <script lang="ts">
+  import PasswordInput from '$lib/ui/inputs/PasswordInput.svelte';
+  import TextInput from '$lib/ui/inputs/TextInput.svelte';
   import { defaults, superForm } from 'sveltekit-superforms';
   import { zod } from 'sveltekit-superforms/adapters';
   import { SignUpSchema } from './page.schemas.js';
-  import TextInput from '$lib/ui/inputs/TextInput.svelte';
-  import PasswordInput from '$lib/ui/inputs/PasswordInput.svelte';
 
   const { form, errors, enhance, submitting, message } = superForm(defaults(zod(SignUpSchema)), {
     resetForm: false,

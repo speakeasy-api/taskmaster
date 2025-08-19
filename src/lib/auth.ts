@@ -8,6 +8,9 @@ import { sveltekitCookies } from 'better-auth/svelte-kit';
 import { getRequestEvent } from '$app/server';
 
 export const auth = betterAuth({
+  user: {
+    deleteUser: { enabled: true }
+  },
   database: drizzleAdapter(db, {
     provider: 'pg',
     schema: schemas

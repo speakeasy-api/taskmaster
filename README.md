@@ -109,9 +109,9 @@ Visit `http://localhost:5173` to see your application running.
 
 This project uses SvelteKit's experimental remote functions feature for type-safe server-client communication:
 
-- **Domain-level functions**: `/lib/remote-fns/[domain].remote.ts`
-- **Route-specific functions**: `/routes/.../[route].remote.ts`
-- **Validation utilities**: Zod schemas with error handling helpers
+- **Component-adjacent pattern**: Each component has its own `Component.remote.ts` and `Component.schemas.ts` files
+- **Co-located architecture**: Remote functions, schemas, and components stay together for better maintainability
+- **Validation utilities**: Zod schemas with error handling helpers in `/src/lib/util.server.ts`
 
 ### Authentication Flow
 

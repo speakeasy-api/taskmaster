@@ -69,22 +69,21 @@ Core auth tables:
 
 This project uses [SvelteKit remote functions](https://svelte.dev/docs/kit/remote-functions) for type-safe server-client communication. Remote functions are an experimental feature that allows calling server-side functions directly from components with full type safety.
 
-#### File Organization Patterns
+#### File Organization Pattern
 
-**Domain-level functions** (for reusable business logic):
-
-```
-/lib/remote-fns/[domain].remote.ts    # Remote function implementations
-/lib/remote-fns/[domain].schemas.ts   # Zod validation schemas
-/lib/remote-fns/index.ts              # Barrel exports for clean imports
-```
-
-**Route-specific functions** (for page-specific operations):
+**Component-adjacent pattern** (for optimal maintainability):
 
 ```
-/routes/.../[route].remote.ts         # Route-specific remote functions
-/routes/.../[route].schemas.ts        # Route-specific schemas
+Component.svelte                      # Svelte component
+Component.remote.ts                   # Remote function implementations
+Component.schemas.ts                  # Zod validation schemas
 ```
+
+This co-location pattern ensures that:
+- Related functionality stays together
+- Changes to components naturally include their remote functions
+- No need for centralized barrel exports
+- Easier to find and maintain component-specific logic
 
 #### Function Implementation Standards
 
@@ -93,7 +92,7 @@ This project uses [SvelteKit remote functions](https://svelte.dev/docs/kit/remot
 - **Data fetching**: Use `prerender()` for data that can be cached at build time
 - **Error handling**: Use consistent utility functions for validation and database errors
 
-#### Utility Functions (`/lib/remote-fns/utils.ts`)
+#### Utility Functions (`/src/lib/util.server.ts`)
 
 - `validateForm(formData, schema)`: Validates FormData against Zod schemas
 - `handleValidationError(validation)`: Returns consistent validation error responses
@@ -102,11 +101,12 @@ This project uses [SvelteKit remote functions](https://svelte.dev/docs/kit/remot
 
 #### Usage Examples
 
-**Domain-level function (projects.remote.ts)**:
+**Component-adjacent function (CreateProjectModal.remote.ts)**:
 
 ```typescript
 import { command } from '$app/server';
-import { CreateProjectRequest } from './projects.schemas';
+import { CreateProjectRequest } from './CreateProjectModal.schemas';
+import { validateForm, handleValidationError } from '$lib/util.server';
 
 export const createProject = command(CreateProjectRequest, async (request) => {
   const { user } = await getRequestEvent().locals.validateSession();
@@ -114,19 +114,24 @@ export const createProject = command(CreateProjectRequest, async (request) => {
 });
 ```
 
-**Component usage with barrel exports**:
+**Component usage with direct imports**:
 
 ```typescript
-import { createProject, CreateProjectRequest } from '$lib/remote-fns';
+import { createProject } from './CreateProjectModal.remote';
+import { CreateProjectRequest } from './CreateProjectModal.schemas';
 ```
 
 **Form function with error handling**:
 
 ```typescript
+import { form } from '$app/server';
+import { validateForm, handleValidationError } from '$lib/util.server';
+import { DeleteProjectRequest } from './ProjectComponent.schemas';
+
 export const deleteProject = form(async (formData) => {
-  const validatedReq = validateForm(formData, DeleteProjectRequest);
-  if (!validatedReq.success) {
-    return fail(400, { message: 'Invalid request data' });
+  const validation = validateForm(formData, DeleteProjectRequest);
+  if (!validation.success) {
+    return handleValidationError(validation);
   }
   // Implementation...
 });
@@ -160,7 +165,7 @@ NO exceptions - this must be the first check in any privileged endpoint before a
 - **ALWAYS** validate request bodies and query parameters using Zod schemas
 - Perform validation **before** any database operations
 - Return structured 400 errors with field-specific messages on validation failure
-- Use patterns from `src/lib/remote-fns/*.schemas.ts` for schema organization
+- Use component-adjacent `*.schemas.ts` files for schema organization
 
 ```typescript
 // Query parameter validation example
@@ -240,6 +245,6 @@ Before deploying API changes, ensure:
 - Auth configuration: `src/lib/auth.ts` and `src/lib/auth-client.ts`
 - Database schemas: `src/lib/db/schemas/`
 - Database connection: `src/lib/db/index.ts`
-- Remote functions: `src/lib/remote-fns/` (domain-level) and `src/routes/.../` (route-specific)
+- Remote functions: Component-adjacent `*.remote.ts` and `*.schemas.ts` files throughout the codebase
 - Server hooks: `src/hooks.server.ts`
 - Routes: `src/routes/` (includes sign-up flow)

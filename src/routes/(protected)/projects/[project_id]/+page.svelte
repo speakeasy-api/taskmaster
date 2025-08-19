@@ -3,9 +3,10 @@
   import PlusIcon from '@lucide/svelte/icons/plus';
   import type { PageProps } from './$types';
   import CreateTaskModal from './_modals/CreateTaskModal.svelte';
-  import { deleteTask, deleteProject, updateTaskStatus } from '$lib/remote-fns/projects.remote';
+  import { deleteTask, updateTaskStatus } from './page.remote';
   import { taskStatusEnum } from '$lib/db/schemas/schema';
   import { snakeToTitleCase } from '$lib/util';
+  import { deleteProject } from './page.remote';
 
   let { data, params }: PageProps = $props();
 

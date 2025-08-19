@@ -1,12 +1,12 @@
 <script lang="ts">
-  import { Modal } from '@skeletonlabs/skeleton-svelte';
+  import { invalidateAll } from '$app/navigation';
   import TextInput from '$lib/ui/inputs/TextInput.svelte';
+  import { Modal } from '@skeletonlabs/skeleton-svelte';
+  import type { ComponentProps } from 'svelte';
   import { defaults, superForm } from 'sveltekit-superforms';
   import { zod } from 'sveltekit-superforms/adapters';
-  import type { ComponentProps } from 'svelte';
-  import { CreateTaskRequest } from '$lib/remote-fns/projects.schemas';
-  import { createTask } from '$lib/remote-fns/projects.remote';
-  import { invalidateAll } from '$app/navigation';
+  import { createTask } from './CreateTaskModal.remote';
+  import { CreateTaskRequest } from './CreateTaskModal.schemas';
 
   type Props = {
     open?: boolean;

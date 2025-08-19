@@ -4,9 +4,9 @@
   import { defaults, superForm } from 'sveltekit-superforms';
   import { zod } from 'sveltekit-superforms/adapters';
   import type { ComponentProps } from 'svelte';
-  import { createProject } from '$lib/remote-fns/projects.remote';
-  import { CreateProjectRequest } from '$lib/remote-fns/projects.schemas';
   import { goto } from '$app/navigation';
+  import { CreateProjectRequest } from './CreateProjectModal.schemas';
+  import { createProject } from './CreateProjectModal.remote';
 
   type Props = {
     open?: boolean;
@@ -26,7 +26,7 @@
           name: form.data.name,
           description: form.data.description
         });
-        await goto(`/projects/${result.id}`);
+        await goto(`/projects/${result.id}`, { invalidateAll: true });
         handleClose();
       },
       clearOnSubmit: 'errors-and-message'
