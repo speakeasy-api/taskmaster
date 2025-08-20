@@ -1,17 +1,29 @@
 import adapter from '@sveltejs/adapter-auto';
 import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
+import mdPreprocessorGroup from './src/lib/docs/preprocessor.ts';
 
 /** @type {import('@sveltejs/kit').Config} */
-const config = {
+const config: import('@sveltejs/kit').Config = {
   // Consult https://svelte.dev/docs/kit/integrations
   // for more information about preprocessors
-  preprocess: vitePreprocess(),
+
+  extensions: ['.svelte', '.md'],
+
+  preprocess: [vitePreprocess(), mdPreprocessorGroup],
 
   compilerOptions: {
     experimental: { async: true }
   },
 
   kit: {
+    typescript: {
+      config(config) {
+        return {
+          ...config,
+          include: [...config.include, '../*.config.ts']
+        };
+      }
+    },
     csrf: {
       checkOrigin: false
     },
