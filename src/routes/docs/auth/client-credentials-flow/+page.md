@@ -2,7 +2,6 @@
 title: Client Credentials Flow
 ---
 
-
 ## Overview
 
 The OAuth Client Credentials flow is a way for applications to authenticate

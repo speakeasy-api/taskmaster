@@ -2,9 +2,7 @@
 title: Authorization Code Flow
 ---
 
-
 ## Overview
-
 
 The OAuth Authorization Code flow is the most secure way for web applications
 to authenticate users and access their data on their behalf. Unlike the client
@@ -187,12 +185,10 @@ code_challenge=$(echo -n "$code_verifier" | openssl dgst -sha256 -binary | base6
 ```
 
 3. **Use in authorization request**:
-
    - `code_challenge`: The generated challenge
    - `code_challenge_method`: `S256`
 
 4. **Use verifier in token request**:
-
    - `code_verifier`: The original verifier string
 
 This returns a new access token.
@@ -248,7 +244,7 @@ OAuth application.
 
 ```json
 {
-  "error": "invalid_grant", 
+  "error": "invalid_grant",
   "error_description": "Invalid code verifier"
 }
 ```
