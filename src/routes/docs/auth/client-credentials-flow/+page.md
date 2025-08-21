@@ -2,6 +2,7 @@
 title: Client Credentials Flow
 ---
 
+
 ## Overview
 
 The OAuth Client Credentials flow is a way for applications to authenticate
@@ -33,8 +34,15 @@ Taskmaster:
    - `client_id`: A public identifier for your application
    - `client_secret`: A private key - treat this like a password!
 
-⚠️ **Important**: Store your `client_secret` securely and never expose it in
-client-side code or version control.
+<blockquote class="blockquote not-prose not-italic preset-filled-surface-50-950 py-4">
+  <strong class="text-lg">
+    ☝️ Important: 
+  </strong>
+  <p class="pl-6">
+    Store your `client_secret` securely and never expose it in
+    client-side code or version control.
+  </p>
+</blockquote>
 
 ## Getting an Access Token
 

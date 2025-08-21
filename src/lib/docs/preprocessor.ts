@@ -1,18 +1,24 @@
 import { escapeSvelte, mdsvex, type code_highlighter } from 'mdsvex';
 import { join } from 'path';
-import { createHighlighter } from 'shiki';
+import { createHighlighter, type BundledLanguage } from 'shiki';
 import type { PreprocessorGroup } from 'svelte/compiler';
+
+const langs: BundledLanguage[] = ['bash', 'json'];
 
 const shikiHighlighter = await createHighlighter({
   themes: ['light-plus', 'dark-plus'],
-  langs: ['bash', 'json']
+  langs
 });
 
 const highlighter: typeof code_highlighter = async (code, lang) => {
-  await shikiHighlighter.loadLanguage('bash', 'json');
+  if (!lang || !langs.includes(lang as BundledLanguage)) {
+    lang = 'text';
+  }
+
+  await shikiHighlighter.loadLanguage(...langs);
   const html = escapeSvelte(
     shikiHighlighter.codeToHtml(code, {
-      lang: lang ?? 'text',
+      lang: lang,
       themes: {
         light: 'light-plus',
         dark: 'dark-plus'

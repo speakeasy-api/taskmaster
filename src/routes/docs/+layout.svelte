@@ -1,6 +1,7 @@
 <script lang="ts">
   import SquareAsteriskIcon from '@lucide/svelte/icons/square-asterisk';
   import ArrowLeftRightIcon from '@lucide/svelte/icons/arrow-left-right';
+  import SquareArrowOutUpRightIcon from '@lucide/svelte/icons/square-arrow-out-up-right';
   import { page } from '$app/state';
   import type { Component } from 'svelte';
   import type { LayoutProps } from './$types';
@@ -40,10 +41,20 @@
             'Client Credentials',
             SquareAsteriskIcon
           )}
-          {@render navLink('/authorization-code', 'Authorization Code', ArrowLeftRightIcon)}
+          {@render navLink(
+            resolve('/docs/auth/authorization-code-flow'),
+            'Authorization Code',
+            ArrowLeftRightIcon
+          )}
         </ul>
       </section>
     </div>
+    <section class="p-2">
+      <a class="btn w-full preset-outlined-surface-200-800 text-sm" href={resolve('/sign-in')}>
+        <span>Go to App</span>
+        <SquareArrowOutUpRightIcon class="h-4 w-4" />
+      </a>
+    </section>
   </nav>
 
   <main class="h-full max-h-screen p-2">
