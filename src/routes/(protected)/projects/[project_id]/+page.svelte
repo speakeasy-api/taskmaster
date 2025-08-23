@@ -32,7 +32,7 @@
 </script>
 
 <svelte:head>
-  <title>{data.project.name} - Task Master</title>
+  <title>{data.project.name} - Taskmaster</title>
 </svelte:head>
 
 {#snippet statCard(title: string, value: number | string)}

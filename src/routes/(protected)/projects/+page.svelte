@@ -1,5 +1,5 @@
 <svelte:head>
-  <title>Projects - Task Master</title>
+  <title>Projects - Taskmaster</title>
 </svelte:head>
 
 <div class="flex h-full flex-col items-center justify-center space-y-4 text-surface-500">

@@ -27,7 +27,7 @@
 </script>
 
 <svelte:head>
-  <title>{data.app.name ?? 'App'} - Task Master</title>
+  <title>{data.app.name ?? 'App'} - Taskmaster</title>
 </svelte:head>
 
 <div class="flex w-lg flex-col gap-6">
