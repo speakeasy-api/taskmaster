@@ -1,5 +1,5 @@
 import { db } from '$lib/db/index.js';
-import { project } from '$lib/db/schemas/schema.js';
+import { projects } from '$lib/db/schemas/schema.js';
 import { and, eq } from 'drizzle-orm';
 import { validateAuthHeader } from '../../tasks/_helpers.js';
 import type { RequestHandler } from './$types.js';
@@ -14,8 +14,8 @@ export const DELETE: RequestHandler = async ({ request, params }) => {
   }
 
   const result = await db
-    .delete(project)
-    .where(and(eq(project.created_by, authedUserId), eq(project.id, params.id)));
+    .delete(projects)
+    .where(and(eq(projects.created_by, authedUserId), eq(projects.id, params.id)));
 
   if (result.rowCount === 0) return new Response('Not Found', { status: 404 });
 

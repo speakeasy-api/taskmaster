@@ -1,6 +1,6 @@
 import { eq, and } from 'drizzle-orm';
 import { db } from './index.js';
-import { oauthApplication } from './schemas/auth.js';
+import { oauthApplications } from './schemas/auth.js';
 
 function generateRandomString(length: number): string {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -16,7 +16,7 @@ export async function createOAuthApp(userId: string, name: string, redirectUrls:
   const clientSecret = generateRandomString(64);
 
   const [newApp] = await db
-    .insert(oauthApplication)
+    .insert(oauthApplications)
     .values({
       id: generateRandomString(32),
       name,
@@ -37,22 +37,22 @@ export async function createOAuthApp(userId: string, name: string, redirectUrls:
 export async function getOAuthAppsByUserId(userId: string) {
   return await db
     .select()
-    .from(oauthApplication)
-    .where(eq(oauthApplication.userId, userId))
-    .orderBy(oauthApplication.createdAt);
+    .from(oauthApplications)
+    .where(eq(oauthApplications.userId, userId))
+    .orderBy(oauthApplications.createdAt);
 }
 
 export async function deleteOAuthApp(appId: string, userId: string) {
   await db
-    .delete(oauthApplication)
-    .where(and(eq(oauthApplication.id, appId), eq(oauthApplication.userId, userId)));
+    .delete(oauthApplications)
+    .where(and(eq(oauthApplications.id, appId), eq(oauthApplications.userId, userId)));
 }
 
 export async function getOAuthAppById(appId: string, userId: string) {
   const [app] = await db
     .select()
-    .from(oauthApplication)
-    .where(and(eq(oauthApplication.id, appId), eq(oauthApplication.userId, userId)));
+    .from(oauthApplications)
+    .where(and(eq(oauthApplications.id, appId), eq(oauthApplications.userId, userId)));
 
   return app;
 }

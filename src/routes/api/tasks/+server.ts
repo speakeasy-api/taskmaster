@@ -2,7 +2,7 @@ import { db } from '$lib/db/index.js';
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types.js';
 import { validateAuthHeader } from './_helpers.js';
-import { task } from '$lib/db/schemas/schema.js';
+import { tasks } from '$lib/db/schemas/schema.js';
 import z from 'zod';
 
 const QueryParamsSchema = z.object({
@@ -42,7 +42,7 @@ export const GET: RequestHandler = async ({ request, url }) => {
 
   const { project_id: projectId } = validation.data;
 
-  const result = await db.query.task.findMany({
+  const result = await db.query.tasks.findMany({
     where: (table, { eq, and }) => {
       const conditions = [eq(table.created_by, authedUserId)];
       if (projectId) {
@@ -80,7 +80,7 @@ export const POST: RequestHandler = async ({ request }) => {
   const { title, description, project_id, status } = validation.data;
 
   const insertResult = await db
-    .insert(task)
+    .insert(tasks)
     .values({
       title,
       description,

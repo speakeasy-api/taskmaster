@@ -2,7 +2,7 @@ import { db } from '$lib/db/index.js';
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types.js';
 import { validateAuthHeader } from '../tasks/_helpers.js';
-import { project } from '$lib/db/schemas/schema.js';
+import { projects } from '$lib/db/schemas/schema.js';
 import z from 'zod';
 
 const CreateProjectSchema = z.object({
@@ -22,7 +22,7 @@ export const GET: RequestHandler = async ({ request }) => {
     return new Response('Invalid token', { status: 400 });
   }
 
-  const result = await db.query.project.findMany({
+  const result = await db.query.projects.findMany({
     where: (table, { eq }) => eq(table.created_by, authedUserId)
   });
 
@@ -54,7 +54,7 @@ export const POST: RequestHandler = async ({ request }) => {
   const { name, description } = validation.data;
 
   const insertResult = await db
-    .insert(project)
+    .insert(projects)
     .values({
       name,
       description,

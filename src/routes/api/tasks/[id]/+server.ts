@@ -1,5 +1,5 @@
 import { db } from '$lib/db/index.js';
-import { task } from '$lib/db/schemas/schema.js';
+import { tasks } from '$lib/db/schemas/schema.js';
 import { and, eq } from 'drizzle-orm';
 import { json } from '@sveltejs/kit';
 import { validateAuthHeader } from '../_helpers.js';
@@ -45,9 +45,9 @@ export const PUT: RequestHandler = async ({ request, params }) => {
 
   // Update the task
   const result = await db
-    .update(task)
+    .update(tasks)
     .set(updates)
-    .where(and(eq(task.created_by, authedUserId), eq(task.id, params.id)))
+    .where(and(eq(tasks.created_by, authedUserId), eq(tasks.id, params.id)))
     .returning();
 
   if (result.length === 0) {
@@ -67,8 +67,8 @@ export const DELETE: RequestHandler = async ({ request, params }) => {
   }
 
   const result = await db
-    .delete(task)
-    .where(and(eq(task.created_by, authedUserId), eq(task.id, params.id)));
+    .delete(tasks)
+    .where(and(eq(tasks.created_by, authedUserId), eq(tasks.id, params.id)));
 
   if (result.rowCount === 0) return new Response('Not Found', { status: 404 });
 

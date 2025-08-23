@@ -1,13 +1,13 @@
 import { command, getRequestEvent } from '$app/server';
 import { db } from '$lib/db';
-import { task } from '$lib/db/schemas/schema';
+import { tasks } from '$lib/db/schemas/schema';
 import { CreateTaskRequest } from './CreateTaskModal.schemas';
 
 export const createTask = command(CreateTaskRequest, async (request) => {
   const { user } = await getRequestEvent().locals.validateSession();
 
   const [newTask] = await db
-    .insert(task)
+    .insert(tasks)
     .values({
       title: request.title,
       description: request.description,

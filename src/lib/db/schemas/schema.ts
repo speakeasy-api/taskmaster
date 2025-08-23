@@ -1,6 +1,6 @@
 import { relations, sql } from 'drizzle-orm';
 import { pgEnum, pgTable, text, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
-import { user } from './auth';
+import { users } from './auth';
 
 export const taskStatusEnum = pgEnum('task_status', [
   'backlog',
@@ -11,14 +11,14 @@ export const taskStatusEnum = pgEnum('task_status', [
   'canceled'
 ]);
 
-export const task = pgTable('task', {
+export const tasks = pgTable('tasks', {
   id: uuid().defaultRandom().primaryKey(),
   title: varchar({ length: 255 }).notNull(),
   description: varchar({ length: 500 }).notNull(),
   created_by: text()
     .notNull()
-    .references(() => user.id, { onDelete: 'cascade' }),
-  project_id: uuid().references(() => project.id, { onDelete: 'cascade' }),
+    .references(() => users.id, { onDelete: 'cascade' }),
+  project_id: uuid().references(() => projects.id, { onDelete: 'cascade' }),
   status: taskStatusEnum(),
   created_at: timestamp({ withTimezone: true, mode: 'string' })
     .default(sql`(now() AT TIME ZONE 'utc'::text)`)
@@ -29,22 +29,22 @@ export const task = pgTable('task', {
     .$onUpdate(() => sql`(now() AT TIME ZONE 'utc'::text)`)
 });
 
-export const taskRelations = relations(task, ({ one }) => ({
-  user: one(user, {
-    fields: [task.created_by],
-    references: [user.id]
+export const tasksRelations = relations(tasks, ({ one }) => ({
+  user: one(users, {
+    fields: [tasks.created_by],
+    references: [users.id]
   }),
-  project: one(project, {
-    fields: [task.project_id],
-    references: [project.id]
+  project: one(projects, {
+    fields: [tasks.project_id],
+    references: [projects.id]
   })
 }));
 
-export const project = pgTable('project', {
+export const projects = pgTable('projects', {
   id: uuid().defaultRandom().primaryKey(),
   name: varchar({ length: 255 }).notNull(),
   description: varchar({ length: 500 }).notNull(),
-  created_by: text().references(() => user.id, { onDelete: 'cascade' }),
+  created_by: text().references(() => users.id, { onDelete: 'cascade' }),
   created_at: timestamp({ withTimezone: true, mode: 'string' })
     .default(sql`(now() AT TIME ZONE 'utc'::text)`)
     .notNull(),
@@ -54,6 +54,6 @@ export const project = pgTable('project', {
     .$onUpdate(() => sql`(now() AT TIME ZONE 'utc'::text)`)
 });
 
-export const projectRelations = relations(project, ({ many }) => ({
-  task: many(task)
+export const projectsRelations = relations(projects, ({ many }) => ({
+  task: many(tasks)
 }));

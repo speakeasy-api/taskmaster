@@ -15,6 +15,13 @@
       "when": 1755568983394,
       "tag": "0001_tranquil_morlun",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1755971253155,
+      "tag": "0002_adorable_otto_octavius",
+      "breakpoints": true
     }
   ]
 }

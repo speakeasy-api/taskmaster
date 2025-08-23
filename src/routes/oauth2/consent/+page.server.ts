@@ -17,7 +17,7 @@ export const load: PageServerLoad = async ({ url }) => {
     error(400, 'Bad request');
   }
 
-  const client = await db.query.oauthApplication.findFirst({
+  const client = await db.query.oauthApplications.findFirst({
     where: (table, { eq }) => eq(table.clientId, paramValidation.data.client_id)
   });
 
