@@ -1,5 +1,6 @@
 import { redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
+import { resolve } from '$app/paths';
 
 export const load: PageServerLoad = async ({ parent }) => {
   const parentData = await parent();
@@ -8,5 +9,9 @@ export const load: PageServerLoad = async ({ parent }) => {
     return;
   }
 
-  redirect(302, 'projects/' + parentData.projects[0].id);
+  const defaultProjectHref = resolve('/(protected)/projects/project/[project_id]', {
+    project_id: parentData.projects[0].id
+  });
+
+  redirect(302, defaultProjectHref);
 };

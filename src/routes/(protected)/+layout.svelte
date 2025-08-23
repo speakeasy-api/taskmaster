@@ -8,6 +8,7 @@
   import UserAccountPopover from '$lib/ui/UserAccountPopover.svelte';
   import { page } from '$app/state';
   import type { Component } from 'svelte';
+  import { resolve } from '$app/paths';
 
   let { children, data }: LayoutProps = $props();
 
@@ -47,7 +48,10 @@
         </div>
         <ul class="space-y-1">
           {#each data.projects as project (project.id)}
-            {@render navLink(`/projects/${project.id}`, project.name)}
+            {@const href = resolve('/(protected)/projects/project/[project_id]', {
+              project_id: project.id
+            })}
+            {@render navLink(href, project.name)}
           {:else}
             <li class="p-2 text-sm text-surface-500">No projects yet!</li>
           {/each}
@@ -56,8 +60,8 @@
       <section class="p-2">
         <p class="p-2 text-sm tracking-wide text-surface-500">SETTINGS</p>
         <ul class="space-y-1">
-          {@render navLink('/developer', 'Developer', SquareTerminal)}
-          {@render navLink('/account', 'Account', CircleUserIcon)}
+          {@render navLink(resolve('/developer'), 'Developer', SquareTerminal)}
+          {@render navLink(resolve('/account'), 'Account', CircleUserIcon)}
         </ul>
       </section>
     </div>

@@ -2,10 +2,16 @@ import { eq, and } from 'drizzle-orm';
 import { db } from './index.js';
 import { tasks } from './schemas/schema.js';
 
-export async function createTodo(userId: string, title: string, description: string) {
+export async function createTodo(
+  userId: string,
+  projectId: string,
+  title: string,
+  description: string
+) {
   const [newTodo] = await db
     .insert(tasks)
     .values({
+      project_id: projectId,
       created_by: userId,
       title,
       description

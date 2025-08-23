@@ -15,7 +15,7 @@ const CreateTaskSchema = z.object({
     .string()
     .min(1, 'Description is required')
     .max(500, 'Description must be 500 characters or less'),
-  project_id: z.string().uuid('project_id must be a valid UUID').optional(),
+  project_id: z.string().uuid('project_id must be a valid UUID'),
   status: z
     .enum(['backlog', 'triage', 'todo', 'in_progress', 'done', 'canceled'])
     .optional()
@@ -85,7 +85,7 @@ export const POST: RequestHandler = async ({ request }) => {
       title,
       description,
       created_by: authedUserId,
-      project_id: project_id || null,
+      project_id: project_id,
       status
     })
     .returning();

@@ -1,12 +1,12 @@
 <script lang="ts">
-  import TrashIcon from '@lucide/svelte/icons/trash';
-  import PlusIcon from '@lucide/svelte/icons/plus';
-  import type { PageProps } from './$types';
-  import CreateTaskModal from './_modals/CreateTaskModal.svelte';
-  import { deleteTask, updateTaskStatus } from './page.remote';
+  import { resolve } from '$app/paths';
   import { taskStatusEnum } from '$lib/db/schemas/schema';
   import { snakeToTitleCase } from '$lib/util';
-  import { deleteProject } from './page.remote';
+  import PlusIcon from '@lucide/svelte/icons/plus';
+  import TrashIcon from '@lucide/svelte/icons/trash';
+  import type { PageProps } from './$types';
+  import CreateTaskModal from './_modals/CreateTaskModal.svelte';
+  import { deleteProject, deleteTask, updateTaskStatus } from './page.remote';
 
   let { data, params }: PageProps = $props();
 
@@ -42,7 +42,7 @@
   </div>
 {/snippet}
 
-{#snippet deleteTaskBtn(task: { id: string; status: string | null })}
+{#snippet actionRight(task: { id: string; status: string | null })}
   <form {...updateTaskStatus.for(task.id)} onchange={(e) => e.currentTarget.requestSubmit()}>
     <input type="hidden" name="id" value={task.id} />
     <select name="status" class="select w-fit grow-0 py-1 text-xs" value={task.status}>
@@ -100,13 +100,16 @@
     {#if data.project.task.length > 0}
       <ul class="space-y-4">
         {#each data.project.task as task (task.id)}
+          {@const href = resolve('/(protected)/projects/task/[task_id]', { task_id: task.id })}
           <li class="flex flex-col justify-between card preset-outlined-surface-200-800 p-4">
             <div>
-              <p class="font-semibold">{task.title}</p>
+              <a {href} class="font-semibold hover:underline">
+                {task.title}
+              </a>
               <p class="text-xs text-surface-500">{task.description}</p>
             </div>
             <div class="mt-1 flex items-center justify-end gap-1">
-              {@render deleteTaskBtn(task)}
+              {@render actionRight(task)}
             </div>
           </li>
         {/each}
