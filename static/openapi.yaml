@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
-  title: Task Master API
-  description: API for managing user tasks with OAuth authentication in Task Master
+  title: Taskmaster API
+  description: API for managing user tasks with OAuth authentication in Taskmaster
   version: 1.0.0
   contact:
     name: API Support
@@ -9,10 +9,8 @@ info:
     name: MIT
 
 servers:
-  - url: https://mcp-auth-demo.vercel.app/api
+  - url: https://taskmaster-speakeasyapi.vercel.app/api
     description: Deployed server
-  - url: http://localhost:5173/api
-    description: Local development server
 
 security:
   - oauthToken: []
@@ -23,8 +21,8 @@ components:
       type: oauth2
       flows:
         authorizationCode:
-          authorizationUrl: https://mcp-auth-demo.vercel.app/api/oauth2/authorize
-          tokenUrl: /oauth2/token
+          authorizationUrl: /api/oauth2/authorize
+          tokenUrl: /api/oauth2/token
           scopes:
             - openid
             - profile
@@ -142,7 +140,7 @@ paths:
     post:
       operationId: createTask
       summary: Create a new task
-      description: Creates a new task for the authenticated user in Task Master
+      description: Creates a new task for the authenticated user in Taskmaster
       security:
         - oauthToken: []
       requestBody:
@@ -240,7 +238,7 @@ paths:
     get:
       operationId: getTasks
       summary: Get all tasks for authenticated user
-      description: Retrieves all tasks belonging to the authenticated user in Task Master. Optionally filter by project.
+      description: Retrieves all tasks belonging to the authenticated user in Taskmaster. Optionally filter by project.
       security:
         - oauthToken: []
       parameters:
@@ -272,7 +270,7 @@ paths:
                   updated_at: '2024-01-15T10:30:00Z'
                 - id: '660f9500-f39c-52e5-b827-557766551111'
                   title: 'Write comprehensive tests'
-                  description: 'Add test coverage for all Task Master endpoints'
+                  description: 'Add test coverage for all Taskmaster endpoints'
                   created_by: 'user_123456'
                   project_id: '6ba7b810-9dad-11d1-80b4-00c04fd430c8'
                   status: 'in_progress'
@@ -297,7 +295,7 @@ paths:
     put:
       operationId: updateTask
       summary: Update a specific task
-      description: Updates a task by ID for the authenticated user in Task Master. All fields are optional for partial updates.
+      description: Updates a task by ID for the authenticated user in Taskmaster. All fields are optional for partial updates.
       security:
         - oauthToken: []
       parameters:
@@ -394,7 +392,7 @@ paths:
     delete:
       operationId: deleteTask
       summary: Delete a specific task
-      description: Deletes a task by ID for the authenticated user in Task Master
+      description: Deletes a task by ID for the authenticated user in Taskmaster
       security:
         - oauthToken: []
       parameters:
@@ -435,7 +433,7 @@ paths:
     post:
       operationId: createProject
       summary: Create a new project
-      description: Creates a new project for the authenticated user in Task Master
+      description: Creates a new project for the authenticated user in Taskmaster
       security:
         - oauthToken: []
       requestBody:
@@ -466,7 +464,7 @@ paths:
                 summary: Basic project creation
                 value:
                   name: 'Mobile App Development'
-                  description: 'Build a cross-platform mobile application for Task Master'
+                  description: 'Build a cross-platform mobile application for Taskmaster'
       responses:
         '201':
           description: Project successfully created
@@ -517,7 +515,7 @@ paths:
     get:
       operationId: getProjects
       summary: Get all projects for authenticated user
-      description: Retrieves all projects belonging to the authenticated user in Task Master
+      description: Retrieves all projects belonging to the authenticated user in Taskmaster
       security:
         - oauthToken: []
       responses:
@@ -538,7 +536,7 @@ paths:
                   updated_at: '2024-01-15T09:00:00Z'
                 - id: '7cb8c920-aeac-22f2-91c5-668877662222'
                   name: 'Mobile App Development'
-                  description: 'Build a cross-platform mobile application for Task Master'
+                  description: 'Build a cross-platform mobile application for Taskmaster'
                   created_by: 'user_123456'
                   created_at: '2024-01-15T10:00:00Z'
                   updated_at: '2024-01-15T11:30:00Z'
@@ -561,7 +559,7 @@ paths:
     delete:
       operationId: deleteProject
       summary: Delete a specific project
-      description: Deletes a project by ID for the authenticated user in Task Master. Associated tasks will be automatically deleted due to cascade delete.
+      description: Deletes a project by ID for the authenticated user in Taskmaster. Associated tasks will be automatically deleted due to cascade delete.
       security:
         - oauthToken: []
       parameters:
@@ -600,6 +598,6 @@ paths:
 
 tags:
   - name: tasks
-    description: Operations related to task management in Task Master
+    description: Operations related to task management in Taskmaster
   - name: projects
-    description: Operations related to project management in Task Master
+    description: Operations related to project management in Taskmaster
