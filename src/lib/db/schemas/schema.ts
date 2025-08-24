@@ -1,6 +1,8 @@
 import { relations, sql } from 'drizzle-orm';
 import {
   check,
+  customType,
+  index,
   pgEnum,
   pgTable,
   text,
@@ -10,6 +12,12 @@ import {
   varchar
 } from 'drizzle-orm/pg-core';
 import { users } from './auth';
+
+const tsvector = customType<{ data: string }>({
+  dataType() {
+    return 'tsvector';
+  }
+});
 
 const timestamps = {
   created_at: timestamp({ withTimezone: true, mode: 'string' })
@@ -30,19 +38,29 @@ export const taskStatusEnum = pgEnum('task_status', [
   'canceled'
 ]);
 
-export const tasks = pgTable('tasks', {
-  id: uuid().defaultRandom().primaryKey(),
-  title: varchar({ length: 255 }).notNull(),
-  description: varchar({ length: 500 }).notNull(),
-  created_by: text()
-    .notNull()
-    .references(() => users.id, { onDelete: 'cascade' }),
-  project_id: uuid()
-    .notNull()
-    .references(() => projects.id, { onDelete: 'cascade' }),
-  status: taskStatusEnum(),
-  ...timestamps
-});
+export const tasks = pgTable(
+  'tasks',
+  {
+    id: uuid().defaultRandom().primaryKey(),
+    title: varchar({ length: 255 }).notNull(),
+    description: varchar({ length: 500 }).notNull(),
+    created_by: text()
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    project_id: uuid()
+      .notNull()
+      .references(() => projects.id, { onDelete: 'cascade' }),
+    search_vector: tsvector().generatedAlwaysAs(
+      sql`
+        setweight(to_tsvector('english', COALESCE(title, '')), 'A') ||
+        setweight(to_tsvector('english', COALESCE(description, '')), 'B')
+      `
+    ),
+    status: taskStatusEnum(),
+    ...timestamps
+  },
+  (t) => [index('title_search_index').using('gin', t.search_vector)]
+);
 
 export const tasksRelations = relations(tasks, ({ one, many }) => ({
   user: one(users, {

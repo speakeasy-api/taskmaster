@@ -50,6 +50,13 @@
       "when": 1755991164764,
       "tag": "0006_yellow_nuke",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1755998062641,
+      "tag": "0007_quiet_caretaker",
+      "breakpoints": true
     }
   ]
 }

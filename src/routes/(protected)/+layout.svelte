@@ -73,7 +73,7 @@
 
   <main class="h-full max-h-screen p-2">
     <div
-      class="h-full rounded-xl border border-surface-200-800 p-6 dark:border-surface-900 dark:bg-surface-900">
+      class="h-full overflow-y-scroll rounded-xl border border-surface-200-800 p-6 dark:border-surface-900 dark:bg-surface-900">
       {@render children()}
     </div>
   </main>

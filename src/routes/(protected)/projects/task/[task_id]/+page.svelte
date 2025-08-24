@@ -1,13 +1,15 @@
 <script lang="ts">
   import { resolve } from '$app/paths';
   import type { taskDepedencyTypeEnum } from '$lib/db/schemas/schema.js';
+  import PlusIcon from '@lucide/svelte/icons/plus';
   import type { InferEnum } from 'drizzle-orm';
   import { normalizeDependencyType, unifyDependencies } from './_utils.js';
+  import AddRelationModal from './_modal/AddRelationModal.svelte';
 
   let { data } = $props();
 
+  let dependencyModalOpen = $state(false);
   const dependencies = $derived(unifyDependencies(data.task));
-
   let idCopied = $state(false);
 
   const projectHref = resolve('/(protected)/projects/project/[project_id]', {
@@ -23,9 +25,13 @@
   }
 </script>
 
+<svelte:head>
+  <title>{data.task.title} - Taskmaster</title>
+</svelte:head>
+
 {#snippet dependencyBadge(type: InferEnum<typeof taskDepedencyTypeEnum>, invert: boolean = false)}
   <p
-    class="badge text-xs"
+    class="badge rounded-full text-xs"
     class:preset-tonal={type.toLowerCase().includes('relate')}
     class:preset-tonal-error={type.toLowerCase().includes('block')}
     class:preset-tonal-warning={type.toLowerCase().includes('duplicate')}>
@@ -45,7 +51,7 @@
       </ol>
       <p class="h2 capitalize">{data.task.title}</p>
       <p class="mt-1 text-xs text-surface-500">
-        <span>Client ID:</span>
+        <span>Task ID:</span>
         <button class="btn preset-tonal btn-sm px-1 py-0.5" onclick={handleCopyTaskId}>
           {data.task.id}
         </button>
@@ -57,8 +63,13 @@
   </header>
 
   <section class="space-y-4">
-    <header class="flex items-baseline justify-between">
+    <header class="flex items-center justify-between">
       <p class="font-bold">Related Tasks</p>
+      <button
+        class="chip-icon preset-tonal"
+        onclick={() => (dependencyModalOpen = !dependencyModalOpen)}>
+        <PlusIcon />
+      </button>
     </header>
 
     {#each dependencies as dependency (dependency.id)}
@@ -75,3 +86,12 @@
     {/if}
   </section>
 </div>
+
+<AddRelationModal
+  projectId={data.task.project_id}
+  excludeTaskIds={[
+    data.task.id,
+    ...data.task.dependencies.map((d) => d.depends_on_task_id),
+    ...data.task.dependents.map((d) => d.task_id)
+  ]}
+  open={dependencyModalOpen} />
