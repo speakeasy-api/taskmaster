@@ -75,7 +75,11 @@ export const tasksRelations = relations(tasks, ({ one, many }) => ({
   dependents: many(taskDependencies, { relationName: 'depends_on_task' })
 }));
 
-export const taskDependencyTypeEnum = pgEnum('link_type', ['blocks', 'relates_to', 'duplicates']);
+export const taskDependencyTypeEnum = pgEnum('dependency_type', [
+  'blocks',
+  'relates_to',
+  'duplicates'
+]);
 
 export const taskDependencies = pgTable(
   'task_dependencies',
