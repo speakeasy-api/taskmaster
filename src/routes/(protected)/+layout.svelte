@@ -8,6 +8,7 @@
   import UserAccountPopover from '$lib/ui/UserAccountPopover.svelte';
   import { page } from '$app/state';
   import type { Component } from 'svelte';
+  import { resolve } from '$app/paths';
 
   let { children, data }: LayoutProps = $props();
 
@@ -40,14 +41,17 @@
         <div class="flex items-center justify-between">
           <p class="p-2 text-sm tracking-wide text-surface-500">PROJECTS</p>
           <button
-            class="btn-icon btn-icon-sm preset-outlined-surface-200-800"
+            class="btn-icon btn-icon-sm preset-tonal"
             onclick={() => (modalOpen = 'create-project')}>
             <PlusIcon />
           </button>
         </div>
         <ul class="space-y-1">
           {#each data.projects as project (project.id)}
-            {@render navLink(`/projects/${project.id}`, project.name)}
+            {@const href = resolve('/(protected)/projects/project/[project_id]', {
+              project_id: project.id
+            })}
+            {@render navLink(href, project.name)}
           {:else}
             <li class="p-2 text-sm text-surface-500">No projects yet!</li>
           {/each}
@@ -56,8 +60,8 @@
       <section class="p-2">
         <p class="p-2 text-sm tracking-wide text-surface-500">SETTINGS</p>
         <ul class="space-y-1">
-          {@render navLink('/developer', 'Developer', SquareTerminal)}
-          {@render navLink('/account', 'Account', CircleUserIcon)}
+          {@render navLink(resolve('/developer'), 'Developer', SquareTerminal)}
+          {@render navLink(resolve('/account'), 'Account', CircleUserIcon)}
         </ul>
       </section>
     </div>
@@ -69,7 +73,7 @@
 
   <main class="h-full max-h-screen p-2">
     <div
-      class="h-full rounded-xl border border-surface-200-800 p-6 dark:border-surface-900 dark:bg-surface-900">
+      class="h-full overflow-y-scroll rounded-xl border border-surface-200-800 p-6 dark:border-surface-900 dark:bg-surface-900">
       {@render children()}
     </div>
   </main>

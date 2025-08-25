@@ -1,6 +1,6 @@
 {
-  "id": "0ad4196e-8da6-45b8-a677-b0a246ae463c",
-  "prevId": "3dfc6767-448d-4353-a412-9c75465e6590",
+  "id": "ee897d68-5fe4-4210-96a5-a9cd4c58f716",
+  "prevId": "758b6b1f-e5e0-4844-b717-351c32df3b4b",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -621,6 +621,104 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
+    "public.task_dependencies": {
+      "name": "task_dependencies",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "task_id": {
+          "name": "task_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "depends_on_task_id": {
+          "name": "depends_on_task_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "dependency_type": {
+          "name": "dependency_type",
+          "type": "link_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_by": {
+          "name": "created_by",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "(now() AT TIME ZONE 'utc'::text)"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "(now() AT TIME ZONE 'utc'::text)"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "task_dependencies_task_id_tasks_id_fk": {
+          "name": "task_dependencies_task_id_tasks_id_fk",
+          "tableFrom": "task_dependencies",
+          "tableTo": "tasks",
+          "columnsFrom": ["task_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "task_dependencies_depends_on_task_id_tasks_id_fk": {
+          "name": "task_dependencies_depends_on_task_id_tasks_id_fk",
+          "tableFrom": "task_dependencies",
+          "tableTo": "tasks",
+          "columnsFrom": ["depends_on_task_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "task_dependencies_created_by_users_id_fk": {
+          "name": "task_dependencies_created_by_users_id_fk",
+          "tableFrom": "task_dependencies",
+          "tableTo": "users",
+          "columnsFrom": ["created_by"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "task_dependencies_task_id_depends_on_task_id_unique": {
+          "name": "task_dependencies_task_id_depends_on_task_id_unique",
+          "nullsNotDistinct": false,
+          "columns": ["task_id", "depends_on_task_id"]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {
+        "no_self_ref": {
+          "name": "no_self_ref",
+          "value": "\"task_dependencies\".\"task_id\" <> \"task_dependencies\".\"depends_on_task_id\""
+        }
+      },
+      "isRLSEnabled": false
+    },
     "public.tasks": {
       "name": "tasks",
       "schema": "",
@@ -654,7 +752,17 @@
           "name": "project_id",
           "type": "uuid",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
+        },
+        "search_vector": {
+          "name": "search_vector",
+          "type": "tsvector",
+          "primaryKey": false,
+          "notNull": false,
+          "generated": {
+            "as": "\n        setweight(to_tsvector('english', COALESCE(title, '')), 'A') ||\n        setweight(to_tsvector('english', COALESCE(description, '')), 'B')\n      ",
+            "type": "stored"
+          }
         },
         "status": {
           "name": "status",
@@ -678,7 +786,23 @@
           "default": "(now() AT TIME ZONE 'utc'::text)"
         }
       },
-      "indexes": {},
+      "indexes": {
+        "title_search_index": {
+          "name": "title_search_index",
+          "columns": [
+            {
+              "expression": "search_vector",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "gin",
+          "with": {}
+        }
+      },
       "foreignKeys": {
         "tasks_created_by_users_id_fk": {
           "name": "tasks_created_by_users_id_fk",
@@ -707,6 +831,11 @@
     }
   },
   "enums": {
+    "public.link_type": {
+      "name": "link_type",
+      "schema": "public",
+      "values": ["blocks", "relates_to", "duplicates"]
+    },
     "public.task_status": {
       "name": "task_status",
       "schema": "public",

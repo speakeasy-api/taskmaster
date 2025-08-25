@@ -1,0 +1,1 @@
+ALTER TYPE "public"."link_type" RENAME TO "dependency_type";
