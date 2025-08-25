@@ -1,6 +1,6 @@
 import { form, getRequestEvent } from '$app/server';
 import { db } from '$lib/db';
-import { taskDepedencyTypeEnum, taskDependencies } from '$lib/db/schemas/schema';
+import { taskDependencyTypeEnum, taskDependencies } from '$lib/db/schemas/schema';
 import { validateForm } from '$lib/util.server';
 import { and, eq, type InferEnum } from 'drizzle-orm';
 import z from 'zod';
@@ -12,7 +12,7 @@ const UpdateTaskDependencyTypeRequest = z.object({
   dependency_type: z.string().refine(
     (type) => {
       const baseType = type.replace(':invert', '');
-      return (taskDepedencyTypeEnum.enumValues as string[]).includes(baseType);
+      return (taskDependencyTypeEnum.enumValues as string[]).includes(baseType);
     },
     { message: 'Invalid dependency type' }
   )
@@ -21,12 +21,11 @@ const UpdateTaskDependencyTypeRequest = z.object({
 // Single function to parse dependency type
 function parseDependencyType(type: string) {
   const isInverted = type.endsWith(':invert');
-  const baseType = type.replace(':invert', '') as InferEnum<typeof taskDepedencyTypeEnum>;
+  const baseType = type.replace(':invert', '') as InferEnum<typeof taskDependencyTypeEnum>;
 
   return { isInverted, baseType };
 }
 
-// overcomplicated - sorry :\
 export const updateDependencyTypeForm = form(async (formData) => {
   const { locals } = getRequestEvent();
   const { user } = await locals.validateSession();

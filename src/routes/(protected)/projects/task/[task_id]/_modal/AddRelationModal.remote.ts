@@ -1,6 +1,6 @@
 import { form, getRequestEvent, query } from '$app/server';
 import { db } from '$lib/db';
-import { taskDepedencyTypeEnum, taskDependencies } from '$lib/db/schemas/schema';
+import { taskDependencyTypeEnum, taskDependencies } from '$lib/db/schemas/schema';
 import { validateForm } from '$lib/util.server';
 import z from 'zod';
 
@@ -29,7 +29,7 @@ export const getTasks = query(GetTasksRequest, async (params) => {
 const AddRelationForm = z.object({
   task_id: z.string().uuid(),
   related_task_id: z.string().uuid(),
-  dependency_type: z.enum(taskDepedencyTypeEnum.enumValues)
+  dependency_type: z.enum(taskDependencyTypeEnum.enumValues)
 });
 
 export const addRelationForm = form(async (formData) => {

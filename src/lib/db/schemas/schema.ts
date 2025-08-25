@@ -75,7 +75,7 @@ export const tasksRelations = relations(tasks, ({ one, many }) => ({
   dependents: many(taskDependencies, { relationName: 'depends_on_task' })
 }));
 
-export const taskDepedencyTypeEnum = pgEnum('link_type', ['blocks', 'relates_to', 'duplicates']);
+export const taskDependencyTypeEnum = pgEnum('link_type', ['blocks', 'relates_to', 'duplicates']);
 
 export const taskDependencies = pgTable(
   'task_dependencies',
@@ -87,7 +87,7 @@ export const taskDependencies = pgTable(
     depends_on_task_id: uuid()
       .notNull()
       .references(() => tasks.id, { onDelete: 'cascade' }),
-    dependency_type: taskDepedencyTypeEnum().notNull(),
+    dependency_type: taskDependencyTypeEnum().notNull(),
     created_by: text()
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),

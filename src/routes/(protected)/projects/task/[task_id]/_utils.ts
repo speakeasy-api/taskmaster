@@ -1,9 +1,9 @@
-import type { taskDepedencyTypeEnum } from '$lib/db/schemas/schema';
+import type { taskDependencyTypeEnum } from '$lib/db/schemas/schema';
 import type { InferEnum } from 'drizzle-orm';
 import type { PageData } from './$types';
 import { resolve } from '$app/paths';
 
-export type InvertedDependencyType = `${InferEnum<typeof taskDepedencyTypeEnum>}:invert`;
+export type InvertedDependencyType = `${InferEnum<typeof taskDependencyTypeEnum>}:invert`;
 
 type UnifiedDependency = {
   id: string;
@@ -85,7 +85,7 @@ export function unifyDependencies(pageTask: PageData['task']) {
 }
 
 export function normalizeDependencyType(params: {
-  type: InferEnum<typeof taskDepedencyTypeEnum>;
+  type: InferEnum<typeof taskDependencyTypeEnum>;
   invert?: boolean;
 }): string {
   const { type, invert: inverted = false } = params;

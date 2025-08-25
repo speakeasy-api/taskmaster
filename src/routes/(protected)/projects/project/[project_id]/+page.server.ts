@@ -10,7 +10,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
       and(eq(fields.created_by, user.id), eq(fields.id, params.project_id)),
     with: {
       task: {
-        orderBy: (fields, { asc, desc }) => [asc(fields.created_at)]
+        orderBy: (fields, { asc }) => [asc(fields.created_at)]
       }
     }
   });
