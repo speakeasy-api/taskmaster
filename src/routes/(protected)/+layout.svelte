@@ -41,7 +41,7 @@
         <div class="flex items-center justify-between">
           <p class="p-2 text-sm tracking-wide text-surface-500">PROJECTS</p>
           <button
-            class="btn-icon btn-icon-sm preset-outlined-surface-200-800"
+            class="btn-icon btn-icon-sm preset-tonal"
             onclick={() => (modalOpen = 'create-project')}>
             <PlusIcon />
           </button>

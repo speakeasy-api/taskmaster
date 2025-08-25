@@ -36,7 +36,7 @@
     { lazy: true }
   );
 
-  const addRelationFormProps = addRelationForm.enhance(({ data, submit, form }) => {
+  const addRelationFormProps = addRelationForm.enhance(async ({ data, submit, form }) => {
     const depType = data.get('dependency_type') as string;
     if (depType.endsWith(':invert')) {
       data.set('task_id', data.get('related_task_id') as string);
@@ -46,21 +46,25 @@
       data.set('task_id', page.params.task_id!);
     }
 
-    submit();
+    await submit();
 
     if (addRelationForm.result?.success) {
       form.reset();
-      open = false;
+      handleClose();
     }
   });
+
+  function handleClose() {
+    open = false;
+  }
 </script>
 
-<Modal {open}>
+<Modal {open} onOpenChange={handleClose}>
   {#snippet content()}
     <ActionCard title="Add Dependency" subtitle="Add a related item to this task.">
       {#snippet body()}
         <form id="add-relation-form" {...addRelationFormProps}>
-          <label for="task_dependency" class="mb-2 block text-sm font-medium">Task ID</label>
+          <label for="task_dependency" class="block text-sm font-medium">Related Task</label>
 
           <input
             bind:this={relatedTaskIdInputRef}
@@ -74,11 +78,10 @@
             }}
             multiple={false}
             placeholder="Select a task"
-            disabled={tasksResource.loading} />
+            disabled={tasksResource.loading}
+            required />
 
-          <label for="dependency_type" class="mt-4 mb-2 block text-sm font-medium">
-            Dependency Type
-          </label>
+          <label for="dependency_type" class="mt-4 block text-sm font-medium">Relation Type</label>
           <select id="dependency_type" name="dependency_type" class="input w-full" required>
             <option value="" disabled selected>Select a dependency type</option>
             <option value="relates_to">Relates To</option>
@@ -90,7 +93,7 @@
         </form>
       {/snippet}
       {#snippet actions()}
-        <button class="btn preset-tonal" onclick={() => (open = false)}>Close</button>
+        <button class="btn preset-tonal" onclick={handleClose}>Close</button>
         <button form="add-relation-form" type="submit" class="btn preset-filled">Add</button>
       {/snippet}
     </ActionCard>

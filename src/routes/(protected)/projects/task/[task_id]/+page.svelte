@@ -1,10 +1,9 @@
 <script lang="ts">
   import { resolve } from '$app/paths';
-  import type { taskDepedencyTypeEnum } from '$lib/db/schemas/schema.js';
   import PlusIcon from '@lucide/svelte/icons/plus';
-  import type { InferEnum } from 'drizzle-orm';
-  import { normalizeDependencyType, unifyDependencies } from './_utils.js';
+  import RelationDropdownMenu from './_components/RelationDropdownMenu.svelte';
   import AddRelationModal from './_modal/AddRelationModal.svelte';
+  import { unifyDependencies } from './_utils.js';
 
   let { data } = $props();
 
@@ -29,62 +28,78 @@
   <title>{data.task.title} - Taskmaster</title>
 </svelte:head>
 
-{#snippet dependencyBadge(type: InferEnum<typeof taskDepedencyTypeEnum>, invert: boolean = false)}
-  <p
-    class="badge rounded-full text-xs"
-    class:preset-tonal={type.toLowerCase().includes('relate')}
-    class:preset-tonal-error={type.toLowerCase().includes('block')}
-    class:preset-tonal-warning={type.toLowerCase().includes('duplicate')}>
-    {normalizeDependencyType({ type, invert })}
-  </p>
-{/snippet}
-
-<div class="flex w-lg flex-col gap-6">
-  <header class="space-y-2">
-    <div>
-      <ol class="mb-4 flex items-center gap-4 text-xs">
-        <li>
-          <a class="opacity-60 hover:underline" href={projectHref}>{data.task.project.name}</a>
-        </li>
-        <li class="opacity-50" aria-hidden={true}>&rsaquo;</li>
-        <li class="capitalize">{data.task.title}</li>
-      </ol>
-      <p class="h2 capitalize">{data.task.title}</p>
-      <p class="mt-1 text-xs text-surface-500">
-        <span>Task ID:</span>
-        <button class="btn preset-tonal btn-sm px-1 py-0.5" onclick={handleCopyTaskId}>
-          {data.task.id}
-        </button>
-        <span class="px-1 py-0.5 text-xs transition-opacity" class:opacity-0={!idCopied}>
-          Copied!
-        </span>
-      </p>
-    </div>
-  </header>
-
-  <section class="space-y-4">
-    <header class="flex items-center justify-between">
-      <p class="font-bold">Related Tasks</p>
-      <button
-        class="chip-icon preset-tonal"
-        onclick={() => (dependencyModalOpen = !dependencyModalOpen)}>
-        <PlusIcon />
-      </button>
+<div class="grid h-full grid-cols-[1fr_auto_auto] gap-6">
+  <div class="flex flex-col gap-6">
+    <header class="space-y-2">
+      <div>
+        <ol class="mb-4 flex items-center gap-4 text-xs">
+          <li>
+            <a class="opacity-60 hover:underline" href={projectHref}>{data.task.project.name}</a>
+          </li>
+          <li class="opacity-50" aria-hidden={true}>&rsaquo;</li>
+          <li class="capitalize">{data.task.title}</li>
+        </ol>
+        <p class="h2 capitalize">{data.task.title}</p>
+        <p class="mt-1 text-xs text-surface-500">
+          <span>Task ID:</span>
+          <button class="btn preset-tonal btn-sm px-1 py-0.5" onclick={handleCopyTaskId}>
+            {data.task.id}
+          </button>
+          <span class="px-1 py-0.5 text-xs transition-opacity" class:opacity-0={!idCopied}>
+            Copied!
+          </span>
+        </p>
+      </div>
     </header>
+    <section>
+      <p class="whitespace-pre-wrap">{data.task.description}</p>
+    </section>
+  </div>
 
-    {#each dependencies as dependency (dependency.id)}
-      <li class="flex flex-col justify-between card preset-outlined-surface-200-800 p-2">
-        <div class="flex items-center justify-between">
-          <a href={dependency.href} class="font-semibold hover:underline">{dependency.title}</a>
-          {@render dependencyBadge(dependency.type, dependency.invert)}
-        </div>
-      </li>
+  <div class="vr"></div>
+
+  <div class="max-w-md min-w-xs space-y-4">
+    <header class="space-y-2">
+      <div class="flex items-center justify-between">
+        <p class="h4 capitalize">Related</p>
+        <button
+          class="btn preset-tonal btn-sm"
+          onclick={() => (dependencyModalOpen = !dependencyModalOpen)}>
+          <PlusIcon class="h-4 w-4" />
+          <span>Add</span>
+        </button>
+      </div>
+    </header>
+    {#each dependencies as depGroup (depGroup.label)}
+      <section class="space-y-2">
+        <header class="flex items-center justify-between">
+          <p class="font-bold">{depGroup.label}</p>
+        </header>
+
+        <ul class="space-y-2">
+          {#each depGroup.items as dependency (dependency.id)}
+            <li class="">
+              <a
+                href={dependency.href}
+                class="group flex items-center justify-between card preset-outlined-surface-200-800 p-0 pl-2 text-xs font-semibold hover:underline">
+                {dependency.title}
+                <RelationDropdownMenu
+                  triggerClass="invisible group-hover:visible rounded-none"
+                  relationId={dependency.id}
+                  value={depGroup.dataValue} />
+              </a>
+            </li>
+          {/each}
+        </ul>
+
+        {#if depGroup.items.length === 0}
+          <div class="w-full rounded text-sm text-surface-500">
+            {depGroup.emptyMessage}
+          </div>
+        {/if}
+      </section>
     {/each}
-
-    {#if data.task.dependencies.length === 0 && data.task.dependents.length === 0}
-      <p class="text-sm text-surface-500">No related tasks. Such loneliness.</p>
-    {/if}
-  </section>
+  </div>
 </div>
 
 <AddRelationModal
@@ -94,4 +109,4 @@
     ...data.task.dependencies.map((d) => d.depends_on_task_id),
     ...data.task.dependents.map((d) => d.task_id)
   ]}
-  open={dependencyModalOpen} />
+  bind:open={dependencyModalOpen} />
