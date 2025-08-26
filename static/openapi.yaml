@@ -47,7 +47,7 @@ components:
         - blocks
         - relates_to
         - duplicates
-      description: Type of relationship between tasks
+      description: Defines how one task relates to another.
       example: 'blocks'
 
     Task:
@@ -567,18 +567,20 @@ paths:
       operationId: createTaskRelationship
       summary: Create a new task relationship
       description: >
-        Creates a new relationship between two tasks for the
-        authenticated user in Taskmaster. The `relationship_type` defines the
-        nature of `task_id`'s relationship to `relates_to_task_id`. For
-        example, if `relationship_type` is `blocks`, then `relates_to_task_id`
-        cannot be completed until `task_id` is completed.
+        Creates a new relationship between two tasks for the authenticated user
+        in Taskmaster. The `type` defines the what `task_id` does to
+        `target_task_id`. For example, if `relationship_type` is `blocks`, then
+        `task_id` blocks `target_task_id`, and `target_task_id` is blocked by
+        `task_id`.
       security:
         - oauthToken: []
       parameters:
         - name: task_id
           in: path
           required: true
-          description: The UUID of the task that will have the relationship
+          description: The UUID of the task from which the relationship
+            originates. If `type` is the verb, then `task_id` is the actor, and
+            `target_task_id` is the subject.
           schema:
             type: string
             format: uuid
@@ -591,7 +593,7 @@ paths:
             schema:
               type: object
               properties:
-                relationship_type:
+                type:
                   $ref: '#/components/schemas/RelationshipType'
                 target_task_id:
                   type: string
@@ -600,18 +602,18 @@ paths:
                   example: '660f9500-f39c-52e5-b827-557766551111'
               required:
                 - target_task_id
-                - relationship_type
+                - type
             examples:
               blocks_relationship:
                 summary: Create blocking relationship
                 value:
                   target_task_id: '660f9500-f39c-52e5-b827-557766551111'
-                  relationship_type: 'blocks'
+                  type: 'blocks'
               relates_to_relationship:
                 summary: Create related relationship
                 value:
                   target_task_id: '770g0600-g40d-63f6-c938-668877773333'
-                  relationship_type: 'relates_to'
+                  type: 'relates_to'
       responses:
         '201':
           description: Task relationship successfully created

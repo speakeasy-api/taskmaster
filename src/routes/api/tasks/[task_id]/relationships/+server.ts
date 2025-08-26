@@ -7,10 +7,10 @@ import { eq, and } from 'drizzle-orm';
 import z from 'zod';
 
 const CreateRelationshipSchema = z.object({
-  target_task_id: z.string().uuid('relates_to_task_id must be a valid UUID'),
-  relationship_type: z.enum(['blocks', 'relates_to', 'duplicates'], {
+  target_task_id: z.string().uuid('target_task_id must be a valid UUID'),
+  type: z.enum(['blocks', 'relates_to', 'duplicates'], {
     errorMap: () => ({
-      message: 'relationship_type must be one of: blocks, relates_to, duplicates'
+      message: 'type must be one of: blocks, relates_to, duplicates'
     })
   })
 });
@@ -127,7 +127,7 @@ export const POST: RequestHandler = async ({ request, params }) => {
     return json({ message: 'Invalid request data', errors }, { status: 400 });
   }
 
-  const { target_task_id, relationship_type } = validation.data;
+  const { target_task_id, type: relationship_type } = validation.data;
 
   // Prevent self-referencing relationships
   if (task_id === target_task_id) {
