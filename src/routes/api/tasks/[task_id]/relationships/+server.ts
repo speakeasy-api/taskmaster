@@ -7,7 +7,7 @@ import { eq, and } from 'drizzle-orm';
 import z from 'zod';
 
 const CreateRelationshipSchema = z.object({
-  relates_to_task_id: z.string().uuid('relates_to_task_id must be a valid UUID'),
+  target_task_id: z.string().uuid('relates_to_task_id must be a valid UUID'),
   relationship_type: z.enum(['blocks', 'relates_to', 'duplicates'], {
     errorMap: () => ({
       message: 'relationship_type must be one of: blocks, relates_to, duplicates'
@@ -127,10 +127,10 @@ export const POST: RequestHandler = async ({ request, params }) => {
     return json({ message: 'Invalid request data', errors }, { status: 400 });
   }
 
-  const { relates_to_task_id, relationship_type } = validation.data;
+  const { target_task_id, relationship_type } = validation.data;
 
   // Prevent self-referencing relationships
-  if (task_id === relates_to_task_id) {
+  if (task_id === target_task_id) {
     return json({ message: 'A task cannot relate to itself' }, { status: 400 });
   }
 
@@ -140,7 +140,7 @@ export const POST: RequestHandler = async ({ request, params }) => {
       where: and(eq(tasks.id, task_id), eq(tasks.created_by, authedUserId))
     }),
     db.query.tasks.findFirst({
-      where: and(eq(tasks.id, relates_to_task_id), eq(tasks.created_by, authedUserId))
+      where: and(eq(tasks.id, target_task_id), eq(tasks.created_by, authedUserId))
     })
   ]);
 
@@ -152,7 +152,7 @@ export const POST: RequestHandler = async ({ request, params }) => {
   const existingRelationship = await db.query.taskDependencies.findFirst({
     where: and(
       eq(taskDependencies.task_id, task_id),
-      eq(taskDependencies.depends_on_task_id, relates_to_task_id)
+      eq(taskDependencies.depends_on_task_id, target_task_id)
     )
   });
 
@@ -165,7 +165,7 @@ export const POST: RequestHandler = async ({ request, params }) => {
     .insert(taskDependencies)
     .values({
       task_id,
-      depends_on_task_id: relates_to_task_id,
+      depends_on_task_id: target_task_id,
       dependency_type: relationship_type,
       created_by: authedUserId
     })

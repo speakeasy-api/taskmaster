@@ -591,26 +591,26 @@ paths:
             schema:
               type: object
               properties:
-                relates_to_task_id:
-                  type: string
-                  format: uuid
-                  description: ID of the task that this task relates to
-                  example: '660f9500-f39c-52e5-b827-557766551111'
                 relationship_type:
                   $ref: '#/components/schemas/RelationshipType'
+                target_task_id:
+                  type: string
+                  format: uuid
+                  description: ID of the task that is affected by this relationship
+                  example: '660f9500-f39c-52e5-b827-557766551111'
               required:
-                - relates_to_task_id
+                - target_task_id
                 - relationship_type
             examples:
               blocks_relationship:
                 summary: Create blocking relationship
                 value:
-                  relates_to_task_id: '660f9500-f39c-52e5-b827-557766551111'
+                  target_task_id: '660f9500-f39c-52e5-b827-557766551111'
                   relationship_type: 'blocks'
               relates_to_relationship:
                 summary: Create related relationship
                 value:
-                  relates_to_task_id: '770g0600-g40d-63f6-c938-668877773333'
+                  target_task_id: '770g0600-g40d-63f6-c938-668877773333'
                   relationship_type: 'relates_to'
       responses:
         '201':
