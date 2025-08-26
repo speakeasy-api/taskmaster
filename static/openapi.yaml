@@ -41,6 +41,15 @@ components:
       description: Current status of the task
       example: 'todo'
 
+    DependencyType:
+      type: string
+      enum:
+        - blocks
+        - relates_to
+        - duplicates
+      description: Type of dependency relationship between tasks
+      example: 'blocks'
+
     Task:
       type: object
       properties:
@@ -84,6 +93,63 @@ components:
         - id
         - title
         - description
+        - created_by
+
+    TaskDependency:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier for the task dependency
+          example: '780f9600-f39c-52e5-b827-557766551122'
+        task_id:
+          type: string
+          format: uuid
+          description: ID of the task that has the dependency
+          example: '550e8400-e29b-41d4-a716-446655440000'
+        depends_on_task_id:
+          type: string
+          format: uuid
+          description: ID of the task that this task depends on
+          example: '660f9500-f39c-52e5-b827-557766551111'
+        dependency_type:
+          $ref: '#/components/schemas/DependencyType'
+        created_by:
+          type: string
+          description: ID of the user who created this dependency
+          example: 'user_123456'
+        created_at:
+          type: string
+          format: date-time
+          description: When the dependency was created
+          example: '2024-01-15T11:30:00Z'
+        updated_at:
+          type: string
+          format: date-time
+          description: When the dependency was last updated
+          example: '2024-01-15T11:30:00Z'
+        dependsOnTask:
+          type: object
+          description: Information about the task that this task depends on
+          properties:
+            id:
+              type: string
+              format: uuid
+              example: '660f9500-f39c-52e5-b827-557766551111'
+            title:
+              type: string
+              example: 'Setup database schema'
+            description:
+              type: string
+              example: 'Create all necessary database tables and relationships'
+            status:
+              $ref: '#/components/schemas/TaskStatus'
+      required:
+        - id
+        - task_id
+        - depends_on_task_id
+        - dependency_type
         - created_by
 
     Project:
@@ -428,6 +494,352 @@ paths:
               schema:
                 type: string
                 example: 'Not Found'
+
+  /tasks/{task_id}/dependencies:
+    get:
+      operationId: getTaskDependencies
+      summary: Get all dependencies for a specific task
+      description: Retrieves all dependencies for a specific task belonging to the authenticated user in Taskmaster. Optionally filter by dependency type.
+      security:
+        - oauthToken: []
+      parameters:
+        - name: task_id
+          in: path
+          required: true
+          description: The UUID of the task to get dependencies for
+          schema:
+            type: string
+            format: uuid
+            example: '550e8400-e29b-41d4-a716-446655440000'
+        - name: dependency_type
+          in: query
+          required: false
+          description: Filter dependencies by type
+          schema:
+            $ref: '#/components/schemas/DependencyType'
+      responses:
+        '200':
+          description: Successfully retrieved task dependencies
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TaskDependency'
+              example:
+                - id: '780f9600-f39c-52e5-b827-557766551122'
+                  task_id: '550e8400-e29b-41d4-a716-446655440000'
+                  depends_on_task_id: '660f9500-f39c-52e5-b827-557766551111'
+                  dependency_type: 'blocks'
+                  created_by: 'user_123456'
+                  created_at: '2024-01-15T11:30:00Z'
+                  updated_at: '2024-01-15T11:30:00Z'
+                  dependsOnTask:
+                    id: '660f9500-f39c-52e5-b827-557766551111'
+                    title: 'Setup database schema'
+                    description: 'Create all necessary database tables and relationships'
+                    status: 'done'
+        '400':
+          description: Bad Request - Invalid task_id format or query parameters
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'task_id must be a valid UUID'
+        '401':
+          description: Unauthorized - Invalid or missing authentication token
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: 'Unauthorized'
+        '404':
+          description: Task not found or not owned by authenticated user
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: 'Not Found'
+    post:
+      operationId: createTaskDependency
+      summary: Create a new task dependency
+      description: Creates a new dependency relationship between two tasks for the authenticated user in Taskmaster
+      security:
+        - oauthToken: []
+      parameters:
+        - name: task_id
+          in: path
+          required: true
+          description: The UUID of the task that will have the dependency
+          schema:
+            type: string
+            format: uuid
+            example: '550e8400-e29b-41d4-a716-446655440000'
+      requestBody:
+        description: Task dependency data for creation
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                depends_on_task_id:
+                  type: string
+                  format: uuid
+                  description: ID of the task that this task depends on
+                  example: '660f9500-f39c-52e5-b827-557766551111'
+                dependency_type:
+                  $ref: '#/components/schemas/DependencyType'
+              required:
+                - depends_on_task_id
+                - dependency_type
+            examples:
+              blocks_dependency:
+                summary: Create blocking dependency
+                value:
+                  depends_on_task_id: '660f9500-f39c-52e5-b827-557766551111'
+                  dependency_type: 'blocks'
+              relates_to_dependency:
+                summary: Create related dependency
+                value:
+                  depends_on_task_id: '770g0600-g40d-63f6-c938-668877773333'
+                  dependency_type: 'relates_to'
+      responses:
+        '201':
+          description: Task dependency successfully created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskDependency'
+              example:
+                id: '780f9600-f39c-52e5-b827-557766551122'
+                task_id: '550e8400-e29b-41d4-a716-446655440000'
+                depends_on_task_id: '660f9500-f39c-52e5-b827-557766551111'
+                dependency_type: 'blocks'
+                created_by: 'user_123456'
+                created_at: '2024-01-15T11:30:00Z'
+                updated_at: '2024-01-15T11:30:00Z'
+                dependsOnTask:
+                  id: '660f9500-f39c-52e5-b827-557766551111'
+                  title: 'Setup database schema'
+                  description: 'Create all necessary database tables and relationships'
+                  status: 'done'
+        '400':
+          description: Bad Request - Invalid request data, self-referencing dependency, or invalid UUIDs
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'A task cannot depend on itself'
+                  errors:
+                    type: object
+                    description: Field-specific validation errors
+                    example:
+                      depends_on_task_id: ['depends_on_task_id must be a valid UUID']
+        '401':
+          description: Unauthorized - Invalid or missing authentication token
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: 'Unauthorized'
+        '404':
+          description: One or both tasks not found or not owned by user
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'One or both tasks not found or not owned by user'
+        '409':
+          description: Conflict - Dependency already exists between these tasks
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Dependency already exists between these tasks'
+        '500':
+          description: Internal Server Error - Failed to create task dependency
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Failed to create task dependency'
+
+  /tasks/{task_id}/dependencies/{dependency_id}:
+    put:
+      operationId: updateTaskDependency
+      summary: Update a specific task dependency
+      description: Updates the dependency type for a specific task dependency belonging to the authenticated user in Taskmaster
+      security:
+        - oauthToken: []
+      parameters:
+        - name: task_id
+          in: path
+          required: true
+          description: The UUID of the task that has the dependency
+          schema:
+            type: string
+            format: uuid
+            example: '550e8400-e29b-41d4-a716-446655440000'
+        - name: dependency_id
+          in: path
+          required: true
+          description: The UUID of the dependency to update
+          schema:
+            type: string
+            format: uuid
+            example: '780f9600-f39c-52e5-b827-557766551122'
+      requestBody:
+        description: Task dependency fields to update
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                dependency_type:
+                  $ref: '#/components/schemas/DependencyType'
+              required:
+                - dependency_type
+            examples:
+              change_to_relates:
+                summary: Change dependency type to relates_to
+                value:
+                  dependency_type: 'relates_to'
+      responses:
+        '200':
+          description: Task dependency successfully updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskDependency'
+              example:
+                id: '780f9600-f39c-52e5-b827-557766551122'
+                task_id: '550e8400-e29b-41d4-a716-446655440000'
+                depends_on_task_id: '660f9500-f39c-52e5-b827-557766551111'
+                dependency_type: 'relates_to'
+                created_by: 'user_123456'
+                created_at: '2024-01-15T11:30:00Z'
+                updated_at: '2024-01-15T15:45:00Z'
+                dependsOnTask:
+                  id: '660f9500-f39c-52e5-b827-557766551111'
+                  title: 'Setup database schema'
+                  description: 'Create all necessary database tables and relationships'
+                  status: 'done'
+        '400':
+          description: Bad Request - Invalid request data or invalid UUIDs
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Invalid request data'
+                  errors:
+                    type: object
+                    description: Field-specific validation errors
+                    example:
+                      dependency_type: ['dependency_type must be one of: blocks, relates_to, duplicates']
+        '401':
+          description: Unauthorized - Invalid or missing authentication token
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: 'Unauthorized'
+        '404':
+          description: Task or dependency not found or not owned by authenticated user
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: 'Not Found'
+        '500':
+          description: Internal Server Error - Failed to update task dependency
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Failed to update task dependency'
+    delete:
+      operationId: deleteTaskDependency
+      summary: Delete a specific task dependency
+      description: Deletes a specific task dependency belonging to the authenticated user in Taskmaster
+      security:
+        - oauthToken: []
+      parameters:
+        - name: task_id
+          in: path
+          required: true
+          description: The UUID of the task that has the dependency
+          schema:
+            type: string
+            format: uuid
+            example: '550e8400-e29b-41d4-a716-446655440000'
+        - name: dependency_id
+          in: path
+          required: true
+          description: The UUID of the dependency to delete
+          schema:
+            type: string
+            format: uuid
+            example: '780f9600-f39c-52e5-b827-557766551122'
+      responses:
+        '204':
+          description: Task dependency successfully deleted
+        '400':
+          description: Bad Request - Invalid UUIDs
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'task_id and dependency_id must be valid UUIDs'
+        '401':
+          description: Unauthorized - Invalid or missing authentication token
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: 'Unauthorized'
+        '404':
+          description: Task or dependency not found or not owned by authenticated user
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: 'Not Found'
+        '500':
+          description: Internal Server Error - Failed to delete task dependency
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Failed to delete task dependency'
 
   /projects:
     post:
