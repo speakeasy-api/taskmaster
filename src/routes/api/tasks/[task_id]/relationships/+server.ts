@@ -6,15 +6,17 @@ import { taskDependencies, tasks } from '$lib/db/schemas/schema.js';
 import { eq, and } from 'drizzle-orm';
 import z from 'zod';
 
-const CreateDependencySchema = z.object({
-  depends_on_task_id: z.string().uuid('depends_on_task_id must be a valid UUID'),
-  dependency_type: z.enum(['blocks', 'relates_to', 'duplicates'], {
-    errorMap: () => ({ message: 'dependency_type must be one of: blocks, relates_to, duplicates' })
+const CreateRelationshipSchema = z.object({
+  relates_to_task_id: z.string().uuid('relates_to_task_id must be a valid UUID'),
+  relationship_type: z.enum(['blocks', 'relates_to', 'duplicates'], {
+    errorMap: () => ({
+      message: 'relationship_type must be one of: blocks, relates_to, duplicates'
+    })
   })
 });
 
 const QueryParamsSchema = z.object({
-  dependency_type: z.enum(['blocks', 'relates_to', 'duplicates']).optional()
+  relationship_type: z.enum(['blocks', 'relates_to', 'duplicates']).optional()
 });
 
 export const GET: RequestHandler = async ({ request, params, url }) => {
@@ -45,7 +47,7 @@ export const GET: RequestHandler = async ({ request, params, url }) => {
     return json({ message: 'Invalid query parameters', errors }, { status: 400 });
   }
 
-  const { dependency_type } = validation.data;
+  const { relationship_type } = validation.data;
 
   // Verify task exists and user owns it
   const task = await db.query.tasks.findFirst({
@@ -56,12 +58,12 @@ export const GET: RequestHandler = async ({ request, params, url }) => {
     return new Response('Not Found', { status: 404 });
   }
 
-  // Get dependencies with related task information
-  const dependencies = await db.query.taskDependencies.findMany({
+  // Get relationships with related task information
+  const relationships = await db.query.taskDependencies.findMany({
     where: (table, { eq, and }) => {
       const conditions = [eq(table.task_id, task_id)];
-      if (dependency_type) {
-        conditions.push(eq(table.dependency_type, dependency_type));
+      if (relationship_type) {
+        conditions.push(eq(table.dependency_type, relationship_type));
       }
       return and(...conditions);
     },
@@ -77,7 +79,19 @@ export const GET: RequestHandler = async ({ request, params, url }) => {
     }
   });
 
-  return json(dependencies);
+  // Transform the response to use relationship terminology
+  const transformedRelationships = relationships.map((rel) => ({
+    id: rel.id,
+    task_id: rel.task_id,
+    relates_to_task_id: rel.depends_on_task_id,
+    relationship_type: rel.dependency_type,
+    created_by: rel.created_by,
+    created_at: rel.created_at,
+    updated_at: rel.updated_at,
+    relatedTask: rel.dependsOnTask
+  }));
+
+  return json(transformedRelationships);
 };
 
 export const POST: RequestHandler = async ({ request, params }) => {
@@ -107,17 +121,17 @@ export const POST: RequestHandler = async ({ request, params }) => {
     return json({ message: 'Invalid JSON in request body' }, { status: 400 });
   }
 
-  const validation = CreateDependencySchema.safeParse(requestBody);
+  const validation = CreateRelationshipSchema.safeParse(requestBody);
   if (!validation.success) {
     const errors = validation.error.flatten().fieldErrors;
     return json({ message: 'Invalid request data', errors }, { status: 400 });
   }
 
-  const { depends_on_task_id, dependency_type } = validation.data;
+  const { relates_to_task_id, relationship_type } = validation.data;
 
-  // Prevent self-referencing dependencies
-  if (task_id === depends_on_task_id) {
-    return json({ message: 'A task cannot depend on itself' }, { status: 400 });
+  // Prevent self-referencing relationships
+  if (task_id === relates_to_task_id) {
+    return json({ message: 'A task cannot relate to itself' }, { status: 400 });
   }
 
   // Verify both tasks exist and user owns them
@@ -126,7 +140,7 @@ export const POST: RequestHandler = async ({ request, params }) => {
       where: and(eq(tasks.id, task_id), eq(tasks.created_by, authedUserId))
     }),
     db.query.tasks.findFirst({
-      where: and(eq(tasks.id, depends_on_task_id), eq(tasks.created_by, authedUserId))
+      where: and(eq(tasks.id, relates_to_task_id), eq(tasks.created_by, authedUserId))
     })
   ]);
 
@@ -134,34 +148,34 @@ export const POST: RequestHandler = async ({ request, params }) => {
     return json({ message: 'One or both tasks not found or not owned by user' }, { status: 404 });
   }
 
-  // Check if dependency already exists
-  const existingDependency = await db.query.taskDependencies.findFirst({
+  // Check if relationship already exists
+  const existingRelationship = await db.query.taskDependencies.findFirst({
     where: and(
       eq(taskDependencies.task_id, task_id),
-      eq(taskDependencies.depends_on_task_id, depends_on_task_id)
+      eq(taskDependencies.depends_on_task_id, relates_to_task_id)
     )
   });
 
-  if (existingDependency) {
-    return json({ message: 'Dependency already exists between these tasks' }, { status: 409 });
+  if (existingRelationship) {
+    return json({ message: 'Relationship already exists between these tasks' }, { status: 409 });
   }
 
-  // Create the dependency
+  // Create the relationship
   const insertResult = await db
     .insert(taskDependencies)
     .values({
       task_id,
-      depends_on_task_id,
-      dependency_type,
+      depends_on_task_id: relates_to_task_id,
+      dependency_type: relationship_type,
       created_by: authedUserId
     })
     .returning();
 
   if (insertResult.length === 0) {
-    return json({ message: 'Failed to create task dependency' }, { status: 500 });
+    return json({ message: 'Failed to create task relationship' }, { status: 500 });
   }
 
-  // Return the created dependency with related task information
+  // Return the created relationship with related task information
   const createdDependency = await db.query.taskDependencies.findFirst({
     where: eq(taskDependencies.id, insertResult[0].id),
     with: {
@@ -176,5 +190,17 @@ export const POST: RequestHandler = async ({ request, params }) => {
     }
   });
 
-  return json(createdDependency, { status: 201 });
+  // Transform the response to use relationship terminology
+  const transformedRelationship = {
+    id: createdDependency!.id,
+    task_id: createdDependency!.task_id,
+    relates_to_task_id: createdDependency!.depends_on_task_id,
+    relationship_type: createdDependency!.dependency_type,
+    created_by: createdDependency!.created_by,
+    created_at: createdDependency!.created_at,
+    updated_at: createdDependency!.updated_at,
+    relatedTask: createdDependency!.dependsOnTask
+  };
+
+  return json(transformedRelationship, { status: 201 });
 };

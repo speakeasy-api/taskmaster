@@ -33,24 +33,24 @@ export async function validateTaskOwnership(
   return task || null;
 }
 
-export async function validateDependencyOwnership(
-  dependencyId: string,
+export async function validateRelationshipOwnership(
+  relationshipId: string,
   taskId: string
 ): Promise<InferSelectModel<typeof taskDependencies> | null> {
-  const dependency = await db.query.taskDependencies.findFirst({
-    where: and(eq(taskDependencies.id, dependencyId), eq(taskDependencies.task_id, taskId))
+  const relationship = await db.query.taskDependencies.findFirst({
+    where: and(eq(taskDependencies.id, relationshipId), eq(taskDependencies.task_id, taskId))
   });
-  return dependency || null;
+  return relationship || null;
 }
 
-export async function checkDependencyExists(
+export async function checkRelationshipExists(
   taskId: string,
-  dependsOnTaskId: string
+  relatesToTaskId: string
 ): Promise<boolean> {
   const existing = await db.query.taskDependencies.findFirst({
     where: and(
       eq(taskDependencies.task_id, taskId),
-      eq(taskDependencies.depends_on_task_id, dependsOnTaskId)
+      eq(taskDependencies.depends_on_task_id, relatesToTaskId)
     )
   });
   return !!existing;
@@ -58,7 +58,7 @@ export async function checkDependencyExists(
 
 export async function validateBothTasksExistAndOwned(
   taskId: string,
-  dependsOnTaskId: string,
+  relatesToTaskId: string,
   userId: string
 ): Promise<{
   sourceTask: InferSelectModel<typeof tasks> | null;
@@ -66,7 +66,7 @@ export async function validateBothTasksExistAndOwned(
 }> {
   const [sourceTask, targetTask] = await Promise.all([
     validateTaskOwnership(taskId, userId),
-    validateTaskOwnership(dependsOnTaskId, userId)
+    validateTaskOwnership(relatesToTaskId, userId)
   ]);
 
   return { sourceTask, targetTask };

@@ -41,13 +41,13 @@ components:
       description: Current status of the task
       example: 'todo'
 
-    DependencyType:
+    RelationshipType:
       type: string
       enum:
         - blocks
         - relates_to
         - duplicates
-      description: Type of dependency relationship between tasks
+      description: Type of relationship between tasks
       example: 'blocks'
 
     Task:
@@ -95,43 +95,43 @@ components:
         - description
         - created_by
 
-    TaskDependency:
+    TaskRelationship:
       type: object
       properties:
         id:
           type: string
           format: uuid
-          description: Unique identifier for the task dependency
+          description: Unique identifier for the task relationship
           example: '780f9600-f39c-52e5-b827-557766551122'
         task_id:
           type: string
           format: uuid
-          description: ID of the task that has the dependency
+          description: ID of the task that has the relationship
           example: '550e8400-e29b-41d4-a716-446655440000'
-        depends_on_task_id:
+        relates_to_task_id:
           type: string
           format: uuid
-          description: ID of the task that this task depends on
+          description: ID of the task that this task relates to
           example: '660f9500-f39c-52e5-b827-557766551111'
-        dependency_type:
-          $ref: '#/components/schemas/DependencyType'
+        relationship_type:
+          $ref: '#/components/schemas/RelationshipType'
         created_by:
           type: string
-          description: ID of the user who created this dependency
+          description: ID of the user who created this relationship
           example: 'user_123456'
         created_at:
           type: string
           format: date-time
-          description: When the dependency was created
+          description: When the relationship was created
           example: '2024-01-15T11:30:00Z'
         updated_at:
           type: string
           format: date-time
-          description: When the dependency was last updated
+          description: When the relationship was last updated
           example: '2024-01-15T11:30:00Z'
-        dependsOnTask:
+        relatedTask:
           type: object
-          description: Information about the task that this task depends on
+          description: Information about the task that this task relates to
           properties:
             id:
               type: string
@@ -148,8 +148,8 @@ components:
       required:
         - id
         - task_id
-        - depends_on_task_id
-        - dependency_type
+        - relates_to_task_id
+        - relationship_type
         - created_by
 
     Project:
@@ -495,11 +495,11 @@ paths:
                 type: string
                 example: 'Not Found'
 
-  /tasks/{task_id}/dependencies:
+  /tasks/{task_id}/relationships:
     get:
-      operationId: getTaskDependencies
-      summary: Get all dependencies for a specific task
-      description: Retrieves all dependencies for a specific task belonging to the authenticated user in Taskmaster. Optionally filter by dependency type.
+      operationId: getTaskRelationships
+      summary: Get all relationships for a specific task
+      description: Retrieves all relationships for a specific task belonging to the authenticated user in Taskmaster. Optionally filter by relationship type.
       security:
         - oauthToken: []
       parameters:
@@ -511,30 +511,30 @@ paths:
             type: string
             format: uuid
             example: '550e8400-e29b-41d4-a716-446655440000'
-        - name: dependency_type
+        - name: relationship_type
           in: query
           required: false
-          description: Filter dependencies by type
+          description: Filter relationships by type
           schema:
-            $ref: '#/components/schemas/DependencyType'
+            $ref: '#/components/schemas/RelationshipType'
       responses:
         '200':
-          description: Successfully retrieved task dependencies
+          description: Successfully retrieved task relationships
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/TaskDependency'
+                  $ref: '#/components/schemas/TaskRelationship'
               example:
                 - id: '780f9600-f39c-52e5-b827-557766551122'
                   task_id: '550e8400-e29b-41d4-a716-446655440000'
-                  depends_on_task_id: '660f9500-f39c-52e5-b827-557766551111'
-                  dependency_type: 'blocks'
+                  relates_to_task_id: '660f9500-f39c-52e5-b827-557766551111'
+                  relationship_type: 'blocks'
                   created_by: 'user_123456'
                   created_at: '2024-01-15T11:30:00Z'
                   updated_at: '2024-01-15T11:30:00Z'
-                  dependsOnTask:
+                  relatedTask:
                     id: '660f9500-f39c-52e5-b827-557766551111'
                     title: 'Setup database schema'
                     description: 'Create all necessary database tables and relationships'
@@ -564,71 +564,76 @@ paths:
                 type: string
                 example: 'Not Found'
     post:
-      operationId: createTaskDependency
-      summary: Create a new task dependency
-      description: Creates a new dependency relationship between two tasks for the authenticated user in Taskmaster
+      operationId: createTaskRelationship
+      summary: Create a new task relationship
+      description: >
+        Creates a new relationship between two tasks for the
+        authenticated user in Taskmaster. The `relationship_type` defines the
+        nature of `task_id`'s relationship to `relates_to_task_id`. For
+        example, if `relationship_type` is `blocks`, then `relates_to_task_id`
+        cannot be completed until `task_id` is completed.
       security:
         - oauthToken: []
       parameters:
         - name: task_id
           in: path
           required: true
-          description: The UUID of the task that will have the dependency
+          description: The UUID of the task that will have the relationship
           schema:
             type: string
             format: uuid
             example: '550e8400-e29b-41d4-a716-446655440000'
       requestBody:
-        description: Task dependency data for creation
+        description: Task relationship data for creation
         required: true
         content:
           application/json:
             schema:
               type: object
               properties:
-                depends_on_task_id:
+                relates_to_task_id:
                   type: string
                   format: uuid
-                  description: ID of the task that this task depends on
+                  description: ID of the task that this task relates to
                   example: '660f9500-f39c-52e5-b827-557766551111'
-                dependency_type:
-                  $ref: '#/components/schemas/DependencyType'
+                relationship_type:
+                  $ref: '#/components/schemas/RelationshipType'
               required:
-                - depends_on_task_id
-                - dependency_type
+                - relates_to_task_id
+                - relationship_type
             examples:
-              blocks_dependency:
-                summary: Create blocking dependency
+              blocks_relationship:
+                summary: Create blocking relationship
                 value:
-                  depends_on_task_id: '660f9500-f39c-52e5-b827-557766551111'
-                  dependency_type: 'blocks'
-              relates_to_dependency:
-                summary: Create related dependency
+                  relates_to_task_id: '660f9500-f39c-52e5-b827-557766551111'
+                  relationship_type: 'blocks'
+              relates_to_relationship:
+                summary: Create related relationship
                 value:
-                  depends_on_task_id: '770g0600-g40d-63f6-c938-668877773333'
-                  dependency_type: 'relates_to'
+                  relates_to_task_id: '770g0600-g40d-63f6-c938-668877773333'
+                  relationship_type: 'relates_to'
       responses:
         '201':
-          description: Task dependency successfully created
+          description: Task relationship successfully created
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TaskDependency'
+                $ref: '#/components/schemas/TaskRelationship'
               example:
                 id: '780f9600-f39c-52e5-b827-557766551122'
                 task_id: '550e8400-e29b-41d4-a716-446655440000'
-                depends_on_task_id: '660f9500-f39c-52e5-b827-557766551111'
-                dependency_type: 'blocks'
+                relates_to_task_id: '660f9500-f39c-52e5-b827-557766551111'
+                relationship_type: 'blocks'
                 created_by: 'user_123456'
                 created_at: '2024-01-15T11:30:00Z'
                 updated_at: '2024-01-15T11:30:00Z'
-                dependsOnTask:
+                relatedTask:
                   id: '660f9500-f39c-52e5-b827-557766551111'
                   title: 'Setup database schema'
                   description: 'Create all necessary database tables and relationships'
                   status: 'done'
         '400':
-          description: Bad Request - Invalid request data, self-referencing dependency, or invalid UUIDs
+          description: Bad Request - Invalid request data, self-referencing relationship, or invalid UUIDs
           content:
             application/json:
               schema:
@@ -636,12 +641,12 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: 'A task cannot depend on itself'
+                    example: 'A task cannot relate to itself'
                   errors:
                     type: object
                     description: Field-specific validation errors
                     example:
-                      depends_on_task_id: ['depends_on_task_id must be a valid UUID']
+                      relates_to_task_id: ['relates_to_task_id must be a valid UUID']
         '401':
           description: Unauthorized - Invalid or missing authentication token
           content:
@@ -668,9 +673,9 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: 'Dependency already exists between these tasks'
+                    example: 'Relationship already exists between these tasks'
         '500':
-          description: Internal Server Error - Failed to create task dependency
+          description: Internal Server Error - Failed to create task relationship
           content:
             application/json:
               schema:
@@ -678,65 +683,65 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: 'Failed to create task dependency'
+                    example: 'Failed to create task relationship'
 
-  /tasks/{task_id}/dependencies/{dependency_id}:
+  /tasks/{task_id}/relationships/{relationship_id}:
     put:
-      operationId: updateTaskDependency
-      summary: Update a specific task dependency
-      description: Updates the dependency type for a specific task dependency belonging to the authenticated user in Taskmaster
+      operationId: updateTaskRelationship
+      summary: Update a specific task relationship
+      description: Updates the relationship type for a specific task relationship belonging to the authenticated user in Taskmaster
       security:
         - oauthToken: []
       parameters:
         - name: task_id
           in: path
           required: true
-          description: The UUID of the task that has the dependency
+          description: The UUID of the task that has the relationship
           schema:
             type: string
             format: uuid
             example: '550e8400-e29b-41d4-a716-446655440000'
-        - name: dependency_id
+        - name: relationship_id
           in: path
           required: true
-          description: The UUID of the dependency to update
+          description: The UUID of the relationship to update
           schema:
             type: string
             format: uuid
             example: '780f9600-f39c-52e5-b827-557766551122'
       requestBody:
-        description: Task dependency fields to update
+        description: Task relationship fields to update
         required: true
         content:
           application/json:
             schema:
               type: object
               properties:
-                dependency_type:
-                  $ref: '#/components/schemas/DependencyType'
+                relationship_type:
+                  $ref: '#/components/schemas/RelationshipType'
               required:
-                - dependency_type
+                - relationship_type
             examples:
               change_to_relates:
-                summary: Change dependency type to relates_to
+                summary: Change relationship type to relates_to
                 value:
-                  dependency_type: 'relates_to'
+                  relationship_type: 'relates_to'
       responses:
         '200':
-          description: Task dependency successfully updated
+          description: Task relationship successfully updated
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TaskDependency'
+                $ref: '#/components/schemas/TaskRelationship'
               example:
                 id: '780f9600-f39c-52e5-b827-557766551122'
                 task_id: '550e8400-e29b-41d4-a716-446655440000'
-                depends_on_task_id: '660f9500-f39c-52e5-b827-557766551111'
-                dependency_type: 'relates_to'
+                relates_to_task_id: '660f9500-f39c-52e5-b827-557766551111'
+                relationship_type: 'relates_to'
                 created_by: 'user_123456'
                 created_at: '2024-01-15T11:30:00Z'
                 updated_at: '2024-01-15T15:45:00Z'
-                dependsOnTask:
+                relatedTask:
                   id: '660f9500-f39c-52e5-b827-557766551111'
                   title: 'Setup database schema'
                   description: 'Create all necessary database tables and relationships'
@@ -755,7 +760,7 @@ paths:
                     type: object
                     description: Field-specific validation errors
                     example:
-                      dependency_type: ['dependency_type must be one of: blocks, relates_to, duplicates']
+                      relationship_type: ['relationship_type must be one of: blocks, relates_to, duplicates']
         '401':
           description: Unauthorized - Invalid or missing authentication token
           content:
@@ -764,14 +769,14 @@ paths:
                 type: string
                 example: 'Unauthorized'
         '404':
-          description: Task or dependency not found or not owned by authenticated user
+          description: Task or relationship not found or not owned by authenticated user
           content:
             text/plain:
               schema:
                 type: string
                 example: 'Not Found'
         '500':
-          description: Internal Server Error - Failed to update task dependency
+          description: Internal Server Error - Failed to update task relationship
           content:
             application/json:
               schema:
@@ -779,33 +784,33 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: 'Failed to update task dependency'
+                    example: 'Failed to update task relationship'
     delete:
-      operationId: deleteTaskDependency
-      summary: Delete a specific task dependency
-      description: Deletes a specific task dependency belonging to the authenticated user in Taskmaster
+      operationId: deleteTaskRelationship
+      summary: Delete a specific task relationship
+      description: Deletes a specific task relationship belonging to the authenticated user in Taskmaster
       security:
         - oauthToken: []
       parameters:
         - name: task_id
           in: path
           required: true
-          description: The UUID of the task that has the dependency
+          description: The UUID of the task that has the relationship
           schema:
             type: string
             format: uuid
             example: '550e8400-e29b-41d4-a716-446655440000'
-        - name: dependency_id
+        - name: relationship_id
           in: path
           required: true
-          description: The UUID of the dependency to delete
+          description: The UUID of the relationship to delete
           schema:
             type: string
             format: uuid
             example: '780f9600-f39c-52e5-b827-557766551122'
       responses:
         '204':
-          description: Task dependency successfully deleted
+          description: Task relationship successfully deleted
         '400':
           description: Bad Request - Invalid UUIDs
           content:
@@ -815,7 +820,7 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: 'task_id and dependency_id must be valid UUIDs'
+                    example: 'task_id and relationship_id must be valid UUIDs'
         '401':
           description: Unauthorized - Invalid or missing authentication token
           content:
@@ -824,14 +829,14 @@ paths:
                 type: string
                 example: 'Unauthorized'
         '404':
-          description: Task or dependency not found or not owned by authenticated user
+          description: Task or relationship not found or not owned by authenticated user
           content:
             text/plain:
               schema:
                 type: string
                 example: 'Not Found'
         '500':
-          description: Internal Server Error - Failed to delete task dependency
+          description: Internal Server Error - Failed to delete task relationship
           content:
             application/json:
               schema:
@@ -839,7 +844,7 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: 'Failed to delete task dependency'
+                    example: 'Failed to delete task relationship'
 
   /projects:
     post:
