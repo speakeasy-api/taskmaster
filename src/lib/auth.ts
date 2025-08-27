@@ -8,6 +8,7 @@ import { sveltekitCookies } from 'better-auth/svelte-kit';
 import { getRequestEvent } from '$app/server';
 
 export const auth = betterAuth({
+  disabledPaths: ['/oauth2/token'],
   user: {
     deleteUser: { enabled: true }
   },
@@ -39,7 +40,6 @@ export const auth = betterAuth({
     oidcProvider({
       loginPage: '/sign-in',
       storeClientSecret: 'encrypted',
-      useJWTPlugin: true,
       allowDynamicClientRegistration: true,
       consentPage: '/oauth2/consent'
     }),

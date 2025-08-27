@@ -66,7 +66,13 @@ export const getMetadata = (ctx: GenericEndpointContext, options?: OIDCOptions):
       ? jwtPlugin.options.jwt.issuer
       : (ctx.context.options.baseURL as string);
   const baseURL = ctx.context.baseURL;
-  const supportedAlgs = options?.useJWTPlugin ? ['RS256', 'EdDSA', 'none'] : ['HS256', 'none'];
+  const supportedAlgs = options?.useJWTPlugin
+    ? [
+        'RS256',
+        // 'EdDSA',
+        'none'
+      ]
+    : ['HS256', 'none'];
   return {
     issuer,
     authorization_endpoint: `${baseURL}/oauth2/authorize`,

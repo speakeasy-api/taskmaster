@@ -1,6 +1,6 @@
 {
-  "id": "3ee2d1f2-b852-46cb-a7b0-d5d1d9daa31c",
-  "prevId": "bf4a22a6-991a-4ebb-bcfd-7f0076156d4e",
+  "id": "82da2b33-65d6-4d93-9d3d-5ced974ade58",
+  "prevId": "3ee2d1f2-b852-46cb-a7b0-d5d1d9daa31c",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -92,11 +92,11 @@
         "accounts_user_id_users_id_fk": {
           "name": "accounts_user_id_users_id_fk",
           "tableFrom": "accounts",
-          "tableTo": "users",
           "columnsFrom": ["user_id"],
+          "tableTo": "users",
           "columnsTo": ["id"],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "cascade"
         }
       },
       "compositePrimaryKeys": {},
@@ -213,13 +213,13 @@
       "uniqueConstraints": {
         "oauth_access_tokens_access_token_unique": {
           "name": "oauth_access_tokens_access_token_unique",
-          "nullsNotDistinct": false,
-          "columns": ["access_token"]
+          "columns": ["access_token"],
+          "nullsNotDistinct": false
         },
         "oauth_access_tokens_refresh_token_unique": {
           "name": "oauth_access_tokens_refresh_token_unique",
-          "nullsNotDistinct": false,
-          "columns": ["refresh_token"]
+          "columns": ["refresh_token"],
+          "nullsNotDistinct": false
         }
       },
       "policies": {},
@@ -309,8 +309,8 @@
       "uniqueConstraints": {
         "oauth_applications_client_id_unique": {
           "name": "oauth_applications_client_id_unique",
-          "nullsNotDistinct": false,
-          "columns": ["client_id"]
+          "columns": ["client_id"],
+          "nullsNotDistinct": false
         }
       },
       "policies": {},
@@ -430,19 +430,19 @@
         "sessions_user_id_users_id_fk": {
           "name": "sessions_user_id_users_id_fk",
           "tableFrom": "sessions",
-          "tableTo": "users",
           "columnsFrom": ["user_id"],
+          "tableTo": "users",
           "columnsTo": ["id"],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "cascade"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
         "sessions_token_unique": {
           "name": "sessions_token_unique",
-          "nullsNotDistinct": false,
-          "columns": ["token"]
+          "columns": ["token"],
+          "nullsNotDistinct": false
         }
       },
       "policies": {},
@@ -502,8 +502,8 @@
       "uniqueConstraints": {
         "users_email_unique": {
           "name": "users_email_unique",
-          "nullsNotDistinct": false,
-          "columns": ["email"]
+          "columns": ["email"],
+          "nullsNotDistinct": false
         }
       },
       "policies": {},
@@ -608,11 +608,11 @@
         "projects_created_by_users_id_fk": {
           "name": "projects_created_by_users_id_fk",
           "tableFrom": "projects",
-          "tableTo": "users",
           "columnsFrom": ["created_by"],
+          "tableTo": "users",
           "columnsTo": ["id"],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "cascade"
         }
       },
       "compositePrimaryKeys": {},
@@ -707,37 +707,37 @@
         "task_dependencies_task_id_tasks_id_fk": {
           "name": "task_dependencies_task_id_tasks_id_fk",
           "tableFrom": "task_dependencies",
-          "tableTo": "tasks",
           "columnsFrom": ["task_id"],
+          "tableTo": "tasks",
           "columnsTo": ["id"],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "cascade"
         },
         "task_dependencies_depends_on_task_id_tasks_id_fk": {
           "name": "task_dependencies_depends_on_task_id_tasks_id_fk",
           "tableFrom": "task_dependencies",
-          "tableTo": "tasks",
           "columnsFrom": ["depends_on_task_id"],
+          "tableTo": "tasks",
           "columnsTo": ["id"],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "cascade"
         },
         "task_dependencies_created_by_users_id_fk": {
           "name": "task_dependencies_created_by_users_id_fk",
           "tableFrom": "task_dependencies",
-          "tableTo": "users",
           "columnsFrom": ["created_by"],
+          "tableTo": "users",
           "columnsTo": ["id"],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "cascade"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
         "task_dependencies_task_id_depends_on_task_id_unique": {
           "name": "task_dependencies_task_id_depends_on_task_id_unique",
-          "nullsNotDistinct": false,
-          "columns": ["task_id", "depends_on_task_id"]
+          "columns": ["task_id", "depends_on_task_id"],
+          "nullsNotDistinct": false
         }
       },
       "policies": {
@@ -820,8 +820,8 @@
           "primaryKey": false,
           "notNull": false,
           "generated": {
-            "as": "\n        setweight(to_tsvector('english', COALESCE(title, '')), 'A') ||\n        setweight(to_tsvector('english', COALESCE(description, '')), 'B')\n      ",
-            "type": "stored"
+            "type": "stored",
+            "as": "\n        setweight(to_tsvector('english', COALESCE(title, '')), 'A') ||\n        setweight(to_tsvector('english', COALESCE(description, '')), 'B')\n      "
           }
         },
         "status": {
@@ -858,29 +858,29 @@
             }
           ],
           "isUnique": false,
-          "concurrently": false,
+          "with": {},
           "method": "gin",
-          "with": {}
+          "concurrently": false
         }
       },
       "foreignKeys": {
         "tasks_created_by_users_id_fk": {
           "name": "tasks_created_by_users_id_fk",
           "tableFrom": "tasks",
-          "tableTo": "users",
           "columnsFrom": ["created_by"],
+          "tableTo": "users",
           "columnsTo": ["id"],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "cascade"
         },
         "tasks_project_id_projects_id_fk": {
           "name": "tasks_project_id_projects_id_fk",
           "tableFrom": "tasks",
-          "tableTo": "projects",
           "columnsFrom": ["project_id"],
+          "tableTo": "projects",
           "columnsTo": ["id"],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "cascade"
         }
       },
       "compositePrimaryKeys": {},
@@ -933,10 +933,10 @@
     }
   },
   "schemas": {},
+  "views": {},
   "sequences": {},
   "roles": {},
   "policies": {},
-  "views": {},
   "_meta": {
     "columns": {},
     "schemas": {},
