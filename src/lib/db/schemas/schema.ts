@@ -1,4 +1,5 @@
 import { relations, sql } from 'drizzle-orm';
+import { authenticatedRole, authUid, crudPolicy } from 'drizzle-orm/neon';
 import {
   check,
   customType,
@@ -29,6 +30,11 @@ const timestamps = {
     .$onUpdate(() => sql`(now() AT TIME ZONE 'utc'::text)`)
 };
 
+const createdBy = text()
+  .notNull()
+  // .default(sql`(auth.user_id())`)
+  .references(() => users.id, { onDelete: 'cascade' });
+
 export const taskStatusEnum = pgEnum('task_status', [
   'backlog',
   'triage',
@@ -44,9 +50,7 @@ export const tasks = pgTable(
     id: uuid().defaultRandom().primaryKey(),
     title: varchar({ length: 255 }).notNull(),
     description: varchar({ length: 500 }).notNull(),
-    created_by: text()
-      .notNull()
-      .references(() => users.id, { onDelete: 'cascade' }),
+    created_by: createdBy,
     project_id: uuid()
       .notNull()
       .references(() => projects.id, { onDelete: 'cascade' }),
@@ -59,7 +63,14 @@ export const tasks = pgTable(
     status: taskStatusEnum(),
     ...timestamps
   },
-  (t) => [index('title_search_index').using('gin', t.search_vector)]
+  (t) => [
+    index('title_search_index').using('gin', t.search_vector),
+    crudPolicy({
+      role: authenticatedRole,
+      read: authUid(t.created_by),
+      modify: authUid(t.created_by)
+    })
+  ]
 );
 
 export const tasksRelations = relations(tasks, ({ one, many }) => ({
@@ -92,14 +103,17 @@ export const taskDependencies = pgTable(
       .notNull()
       .references(() => tasks.id, { onDelete: 'cascade' }),
     dependency_type: taskDependencyTypeEnum().notNull(),
-    created_by: text()
-      .notNull()
-      .references(() => users.id, { onDelete: 'cascade' }),
+    created_by: createdBy,
     ...timestamps
   },
   (t) => [
     unique().on(t.task_id, t.depends_on_task_id),
-    check('no_self_ref', sql`${t.task_id} <> ${t.depends_on_task_id}`)
+    check('no_self_ref', sql`${t.task_id} <> ${t.depends_on_task_id}`),
+    crudPolicy({
+      role: authenticatedRole,
+      read: authUid(t.created_by),
+      modify: authUid(t.created_by)
+    })
   ]
 );
 
@@ -116,13 +130,23 @@ export const taskDependenciesRelations = relations(taskDependencies, ({ one }) =
   })
 }));
 
-export const projects = pgTable('projects', {
-  id: uuid().defaultRandom().primaryKey(),
-  name: varchar({ length: 255 }).notNull(),
-  description: varchar({ length: 500 }).notNull(),
-  created_by: text().references(() => users.id, { onDelete: 'cascade' }),
-  ...timestamps
-});
+export const projects = pgTable(
+  'projects',
+  {
+    id: uuid().defaultRandom().primaryKey(),
+    name: varchar({ length: 255 }).notNull(),
+    description: varchar({ length: 500 }).notNull(),
+    created_by: createdBy,
+    ...timestamps
+  },
+  (t) => [
+    crudPolicy({
+      role: authenticatedRole,
+      read: authUid(t.created_by),
+      modify: authUid(t.created_by)
+    })
+  ]
+);
 
 export const projectsRelations = relations(projects, ({ many }) => ({
   task: many(tasks)

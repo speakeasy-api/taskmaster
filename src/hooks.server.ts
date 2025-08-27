@@ -1,52 +1,53 @@
 import { building } from '$app/environment';
+import { resolve as resolvePath } from '$app/paths';
 import { auth } from '$lib/auth';
-import { error, type Handle } from '@sveltejs/kit';
+import { buildAuthenticatedDbClient } from '$lib/db';
+import { sendFlashMessage } from '$lib/server/flash';
+import * as loggers from '$lib/server/log';
+import { redirect, type Handle } from '@sveltejs/kit';
 import { svelteKitHandler } from 'better-auth/svelte-kit';
-import { randomBytes } from 'crypto';
 
 export const handle: Handle = async ({ event, resolve }) => {
-  let validatedSession: GetSessionResponse | null = null;
+  let validatedSession: ValidateSessionResult | null = null;
+
   event.locals.validateSession = async () => {
     if (validatedSession) {
       return validatedSession;
     }
 
-    const session = await auth.api.getSession({ headers: event.request.headers });
-    if (!session) {
-      error(401, 'Unauthorized');
+    const sessionResponse = await auth.api.getSession({
+      headers: event.request.headers,
+      asResponse: true
+    });
+
+    if (sessionResponse.status !== 200) {
+      event.locals.sendFlashMessage({
+        title: 'Unauthorized',
+        description: `An error occurred while validating your session (${sessionResponse.status}). Please log in again.`
+      });
+      redirect(303, resolvePath('/(auth)/sign-in'));
     }
 
-    validatedSession = session;
-    return session;
+    const sessionJson: ValidateSessionResult = await sessionResponse.json();
+
+    validatedSession = {
+      ...sessionJson,
+      jwt: sessionResponse.headers.get('set-auth-jwt')!
+    };
+
+    return validatedSession;
   };
 
   if (event.route.id?.startsWith('/(protected)')) {
     await event.locals.validateSession();
   }
 
-  event.locals.log = (...args: unknown[]) => {
-    console.log(
-      `[LOG] [${new Date().toISOString()}] ${event.request.method} ${event.url.pathname} ::`,
-      ...args
-    );
-  };
+  event.locals.db = buildAuthenticatedDbClient();
 
-  event.locals.logError = (...args: unknown[]) => {
-    console.error(
-      `[ERR] [${new Date().toISOString()}] ${event.request.method} ${event.url.pathname} ::`,
-      ...args
-    );
-  };
+  event.locals.log = loggers.log;
+  event.locals.logError = loggers.logError;
 
-  event.locals.sendFlashMessage = (params) => {
-    const messageKey = `_message-${randomBytes(4).toString('base64url')}`;
-    const messageJson = JSON.stringify({
-      title: params.title,
-      description: params.description,
-      createdAt: Date.now()
-    } satisfies FlashMessage);
-    event.cookies.set(messageKey, messageJson, { path: '/', httpOnly: false, maxAge: 15 });
-  };
+  event.locals.sendFlashMessage = sendFlashMessage;
 
   return svelteKitHandler({ event, resolve, auth, building });
 };

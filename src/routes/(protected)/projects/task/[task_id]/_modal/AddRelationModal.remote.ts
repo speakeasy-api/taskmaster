@@ -1,5 +1,4 @@
 import { form, getRequestEvent, query } from '$app/server';
-import { db } from '$lib/db';
 import { taskDependencyTypeEnum, taskDependencies } from '$lib/db/schemas/schema';
 import { validateForm } from '$lib/util.server';
 import z from 'zod';
@@ -11,16 +10,11 @@ const GetTasksRequest = z.object({
 
 export const getTasks = query(GetTasksRequest, async (params) => {
   const { locals } = getRequestEvent();
-  const { user } = await locals.validateSession();
   const { projectId, excludeTaskIds = [] } = params;
 
-  const result = await db.query.tasks.findMany({
+  const result = await locals.db.query.tasks.findMany({
     where: (table, { eq, and, not }) =>
-      and(
-        eq(table.created_by, user.id),
-        eq(table.project_id, projectId),
-        ...excludeTaskIds.map((id) => not(eq(table.id, id)))
-      )
+      and(eq(table.project_id, projectId), ...excludeTaskIds.map((id) => not(eq(table.id, id))))
   });
 
   return result;
@@ -34,7 +28,6 @@ const AddRelationForm = z.object({
 
 export const addRelationForm = form(async (formData) => {
   const { locals } = getRequestEvent();
-  const { user } = await locals.validateSession();
 
   const validatedReq = validateForm(formData, AddRelationForm);
 
@@ -48,12 +41,16 @@ export const addRelationForm = form(async (formData) => {
     dependency_type: dependencyType
   } = validatedReq.data;
 
-  await db.insert(taskDependencies).values({
-    task_id: taskId,
-    depends_on_task_id: relatedTaskId,
-    dependency_type: dependencyType,
-    created_by: user.id
-  });
+  try {
+    await locals.db.insert(taskDependencies).values({
+      task_id: taskId,
+      depends_on_task_id: relatedTaskId,
+      dependency_type: dependencyType
+    });
+  } catch (error) {
+    console.error('Error adding relation:', error);
+    return { success: false, errors: { form: ['Failed to add relation. Please try again.'] } };
+  }
 
   return { success: true };
 });

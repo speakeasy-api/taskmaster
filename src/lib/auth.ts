@@ -21,10 +21,10 @@ export const auth = betterAuth({
     autoSignIn: false
   },
   session: {
-    cookieCache: {
-      enabled: true,
-      maxAge: 5 * 60
-    }
+    // cookieCache: {
+    //   enabled: true,
+    //   maxAge: 5 * 60
+    // }
   },
 
   plugins: [
