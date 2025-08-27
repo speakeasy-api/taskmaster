@@ -21,14 +21,20 @@ export const auth = betterAuth({
     autoSignIn: false
   },
   session: {
-    cookieCache: {
-      enabled: true,
-      maxAge: 5 * 60
-    }
+    // cookieCache: {
+    //   enabled: true,
+    //   maxAge: 5 * 60
+    // }
   },
   plugins: [
     sveltekitCookies(getRequestEvent),
-    jwt(),
+    jwt({
+      jwks: {
+        keyPairConfig: {
+          alg: 'ES256'
+        }
+      }
+    }),
     oidcProvider({
       loginPage: '/sign-in',
       storeClientSecret: 'encrypted',

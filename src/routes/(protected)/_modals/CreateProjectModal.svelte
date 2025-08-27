@@ -7,6 +7,7 @@
   import { goto } from '$app/navigation';
   import { CreateProjectRequest } from './CreateProjectModal.schemas';
   import { createProject } from './CreateProjectModal.remote';
+  import { resolve } from '$app/paths';
 
   type Props = {
     open?: boolean;
@@ -26,7 +27,11 @@
           name: form.data.name,
           description: form.data.description
         });
-        await goto(`/projects/${result.id}`, { invalidateAll: true });
+
+        await goto(
+          resolve('/(protected)/projects/project/[project_id]', { project_id: result.id }),
+          { invalidateAll: true }
+        );
         handleClose();
       },
       clearOnSubmit: 'errors-and-message'
