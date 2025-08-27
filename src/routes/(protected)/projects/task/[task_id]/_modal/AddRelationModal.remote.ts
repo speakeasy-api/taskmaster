@@ -1,5 +1,4 @@
 import { form, getRequestEvent, query } from '$app/server';
-import { db } from '$lib/db';
 import { taskDependencyTypeEnum, taskDependencies } from '$lib/db/schemas/schema';
 import { validateForm } from '$lib/util.server';
 import z from 'zod';

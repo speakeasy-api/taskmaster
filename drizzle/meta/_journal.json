@@ -5,99 +5,15 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1755362321320,
-      "tag": "0000_heavy_sugar_man",
+      "when": 1756332993239,
+      "tag": "0000_icy_vengeance",
       "breakpoints": true
     },
     {
       "idx": 1,
       "version": "7",
-      "when": 1755568983394,
-      "tag": "0001_tranquil_morlun",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1755971253155,
-      "tag": "0002_adorable_otto_octavius",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1755975169280,
-      "tag": "0003_shocking_slyde",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1755987028264,
-      "tag": "0004_natural_husk",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "7",
-      "when": 1755991079434,
-      "tag": "0005_same_vance_astro",
-      "breakpoints": true
-    },
-    {
-      "idx": 6,
-      "version": "7",
-      "when": 1755991164764,
-      "tag": "0006_yellow_nuke",
-      "breakpoints": true
-    },
-    {
-      "idx": 7,
-      "version": "7",
-      "when": 1755998062641,
-      "tag": "0007_quiet_caretaker",
-      "breakpoints": true
-    },
-    {
-      "idx": 8,
-      "version": "7",
-      "when": 1756150964357,
-      "tag": "0008_stormy_sersi",
-      "breakpoints": true
-    },
-    {
-      "idx": 9,
-      "version": "7",
-      "when": 1756316403894,
-      "tag": "0009_aromatic_obadiah_stane",
-      "breakpoints": true
-    },
-    {
-      "idx": 10,
-      "version": "7",
-      "when": 1756316418612,
-      "tag": "0010_pretty_mikhail_rasputin",
-      "breakpoints": true
-    },
-    {
-      "idx": 11,
-      "version": "7",
-      "when": 1756318417257,
-      "tag": "0011_puzzling_clea",
-      "breakpoints": true
-    },
-    {
-      "idx": 12,
-      "version": "7",
-      "when": 1756318924480,
-      "tag": "0012_early_moondragon",
-      "breakpoints": true
-    },
-    {
-      "idx": 13,
-      "version": "7",
-      "when": 1756322358137,
-      "tag": "0013_common_lilith",
+      "when": 1756333441136,
+      "tag": "0001_uneven_valeria_richards",
       "breakpoints": true
     }
   ]

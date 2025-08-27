@@ -32,7 +32,7 @@ const timestamps = {
 
 const createdBy = text()
   .notNull()
-  .default(sql`(auth.user_id())`)
+  // .default(sql`(auth.user_id())`)
   .references(() => users.id, { onDelete: 'cascade' });
 
 export const taskStatusEnum = pgEnum('task_status', [

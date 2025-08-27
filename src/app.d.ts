@@ -1,3 +1,5 @@
+import type { AuthentictedDbClient } from '$lib/db';
+
 // See https://svelte.dev/docs/kit/types#app.d.ts
 // for information about these interfaces
 declare global {
@@ -13,7 +15,7 @@ declare global {
       sendFlashMessage: (params: Omit<FlashMessage, 'createdAt'>) => void;
 
       /** Database connection that includes the JWT for the current user (if any) */
-      db: ReturnType<typeof import('./lib/db/index.js').AuthentictedDbClient>;
+      db: AuthentictedDbClient;
     }
     // interface PageData {}
     // interface PageState {}

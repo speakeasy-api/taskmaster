@@ -1,1 +1,0 @@
-ALTER TABLE "task_dependencies" ALTER COLUMN "dependency_type" DROP DEFAULT;
