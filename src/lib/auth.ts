@@ -6,8 +6,10 @@ import * as schemas from '../lib/db/schemas/auth.js';
 import { oidcProvider } from './oidc-provider/index.js';
 import { sveltekitCookies } from 'better-auth/svelte-kit';
 import { getRequestEvent } from '$app/server';
+import { BETTER_AUTH_SECRET } from '$env/static/private';
 
 export const auth = betterAuth({
+  secret: BETTER_AUTH_SECRET,
   user: {
     deleteUser: { enabled: true }
   },

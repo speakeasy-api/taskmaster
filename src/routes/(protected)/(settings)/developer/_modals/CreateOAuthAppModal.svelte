@@ -93,7 +93,7 @@
         </TextInput>
 
         <TextInput
-          label="Redirect URL (Optional)"
+          label="Redirect URL"
           placeholder="https://example.com/callback"
           name="redirectUrl"
           status={$errors.redirectUrl ? 'error' : undefined}

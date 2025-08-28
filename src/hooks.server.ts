@@ -2,12 +2,15 @@ import { building } from '$app/environment';
 import { resolve as resolvePath } from '$app/paths';
 import { auth } from '$lib/auth';
 import { buildAuthenticatedDbClient } from '$lib/db';
+import { clearAuthCookies } from '$lib/server/cookies';
 import { sendFlashMessage } from '$lib/server/flash';
 import * as loggers from '$lib/server/log';
 import { redirect, type Handle } from '@sveltejs/kit';
 import { svelteKitHandler } from 'better-auth/svelte-kit';
 
 export const handle: Handle = async ({ event, resolve }) => {
+  event.locals.sendFlashMessage = sendFlashMessage;
+
   let validatedSession: ValidateSessionResult | null = null;
 
   event.locals.validateSession = async () => {
@@ -25,10 +28,21 @@ export const handle: Handle = async ({ event, resolve }) => {
         title: 'Unauthorized',
         description: `An error occurred while validating your session (${sessionResponse.status}). Please log in again.`
       });
+      clearAuthCookies();
       redirect(303, resolvePath('/(auth)/sign-in'));
     }
 
-    const sessionJson: ValidateSessionResult = await sessionResponse.json();
+    const sessionJson: ValidateSessionResult | null = await sessionResponse.json();
+    const setJwtHeader: string | null = sessionResponse.headers.get('set-auth-jwt');
+
+    if (!sessionJson || !setJwtHeader) {
+      event.locals.sendFlashMessage({
+        title: 'Unauthorized',
+        description: 'Your session is invalid. Please log in again.'
+      });
+      clearAuthCookies();
+      redirect(303, resolvePath('/(auth)/sign-in'));
+    }
 
     validatedSession = {
       ...sessionJson,
@@ -46,8 +60,6 @@ export const handle: Handle = async ({ event, resolve }) => {
 
   event.locals.log = loggers.log;
   event.locals.logError = loggers.logError;
-
-  event.locals.sendFlashMessage = sendFlashMessage;
 
   return svelteKitHandler({ event, resolve, auth, building });
 };
