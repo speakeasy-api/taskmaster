@@ -2,12 +2,7 @@ import { getClient, type CodeVerificationValue } from '../../index.js';
 import { verifyStoredClientSecret, type OIDCOptionsWithDefaults } from '../../utils.js';
 import { APIError } from 'better-auth/api';
 import { generateRandomString } from 'better-auth/crypto';
-import {
-  extractClientCredentials,
-  generateIdToken,
-  parseRequestBody,
-  validateCodeChallenge
-} from './common';
+import { extractClientCredentials, parseRequestBody, validateCodeChallenge } from './common';
 import type { AuthorizationCodeRequestBody, TokenEndpointContext } from './types';
 
 export async function handleAuthorizationCodeFlow(
@@ -135,16 +130,16 @@ export async function handleAuthorizationCodeFlow(
   }
 
   // Generate ID token if openid scope is present
-  let idToken: string | null = null;
-  if (codeData.scope.includes('openid')) {
-    idToken = await generateIdToken({
-      ctx,
-      userId: codeData.userId,
-      clientId: client.clientId,
-      opts,
-      token: accessToken
-    });
-  }
+  const idToken: string | null = null;
+  // if (codeData.scope.includes('openid')) {
+  //   idToken = await generateIdToken({
+  //     ctx,
+  //     userId: codeData.userId,
+  //     clientId: client.clientId,
+  //     opts,
+  //     token: accessToken
+  //   });
+  // }
 
   // Store the access token
   await ctx.context.adapter.create({

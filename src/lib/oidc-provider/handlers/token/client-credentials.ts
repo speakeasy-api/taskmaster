@@ -2,7 +2,7 @@ import { getClient } from '../../index.js';
 import { verifyStoredClientSecret, type OIDCOptionsWithDefaults } from '../../utils.js';
 import { APIError } from 'better-auth/api';
 import { generateRandomString } from 'better-auth/crypto';
-import { extractClientCredentials, generateIdToken } from './common';
+import { extractClientCredentials } from './common';
 import type { TokenEndpointContext } from './types';
 
 export async function handleClientCredentialsFlow(
@@ -47,16 +47,16 @@ export async function handleClientCredentialsFlow(
   const accessTokenExpiresAt = new Date(Date.now() + opts.accessTokenExpiresIn * 1000);
 
   // Generate ID token if user ID is available and openid scope is present
-  let idToken: string | null = null;
-  if (client.userId && opts.scopes.includes('openid')) {
-    idToken = await generateIdToken({
-      ctx,
-      userId: client.userId,
-      clientId: client.clientId,
-      opts,
-      token: accessToken
-    });
-  }
+  const idToken: string | null = null;
+  // if (client.userId && opts.scopes.includes('openid')) {
+  //   idToken = await generateIdToken({
+  //     ctx,
+  //     userId: client.userId,
+  //     clientId: client.clientId,
+  //     opts,
+  //     token: accessToken
+  //   });
+  // }
 
   await ctx.context.adapter.create({
     model: 'oauthAccessToken',

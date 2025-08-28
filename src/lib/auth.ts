@@ -8,7 +8,6 @@ import { sveltekitCookies } from 'better-auth/svelte-kit';
 import { getRequestEvent } from '$app/server';
 
 export const auth = betterAuth({
-  disabledPaths: ['/oauth2/token'],
   user: {
     deleteUser: { enabled: true }
   },
@@ -22,6 +21,7 @@ export const auth = betterAuth({
     autoSignIn: false
   },
   session: {
+    // !TODO: re-enable
     // cookieCache: {
     //   enabled: true,
     //   maxAge: 5 * 60
