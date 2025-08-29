@@ -29,6 +29,20 @@
       "when": 1756390172833,
       "tag": "0003_dazzling_sleepwalker",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1756434396943,
+      "tag": "0004_high_tyger_tiger",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1756434460549,
+      "tag": "0005_nosy_retro_girl",
+      "breakpoints": true
     }
   ]
 }

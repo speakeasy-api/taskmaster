@@ -1,6 +1,6 @@
 {
-  "id": "0379c106-fb92-46f1-b1a0-46a9fa42db91",
-  "prevId": "82da2b33-65d6-4d93-9d3d-5ced974ade58",
+  "id": "35138295-d225-42e2-aaae-fad3d5ba1b21",
+  "prevId": "0379c106-fb92-46f1-b1a0-46a9fa42db91",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -313,7 +313,37 @@
           "columns": ["client_id"]
         }
       },
-      "policies": {},
+      "policies": {
+        "crud-authenticated-policy-delete": {
+          "name": "crud-authenticated-policy-delete",
+          "as": "PERMISSIVE",
+          "for": "DELETE",
+          "to": ["authenticated"],
+          "using": "(select auth.user_id() = \"oauth_applications\".\"user_id\")"
+        },
+        "crud-authenticated-policy-insert": {
+          "name": "crud-authenticated-policy-insert",
+          "as": "PERMISSIVE",
+          "for": "INSERT",
+          "to": ["authenticated"],
+          "withCheck": "(select auth.user_id() = \"oauth_applications\".\"user_id\")"
+        },
+        "crud-authenticated-policy-select": {
+          "name": "crud-authenticated-policy-select",
+          "as": "PERMISSIVE",
+          "for": "SELECT",
+          "to": ["authenticated"],
+          "using": "(select auth.user_id() = \"oauth_applications\".\"user_id\")"
+        },
+        "crud-authenticated-policy-update": {
+          "name": "crud-authenticated-policy-update",
+          "as": "PERMISSIVE",
+          "for": "UPDATE",
+          "to": ["authenticated"],
+          "using": "(select auth.user_id() = \"oauth_applications\".\"user_id\")",
+          "withCheck": "(select auth.user_id() = \"oauth_applications\".\"user_id\")"
+        }
+      },
       "checkConstraints": {},
       "isRLSEnabled": false
     },

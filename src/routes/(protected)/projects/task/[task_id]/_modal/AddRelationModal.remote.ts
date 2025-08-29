@@ -1,6 +1,6 @@
 import { form, getRequestEvent, query } from '$app/server';
 import { taskDependencyTypeEnum, taskDependencies } from '$lib/db/schemas/schema';
-import { validateForm } from '$lib/util.server';
+import { validateForm } from '$lib/server/remote-fns';
 import z from 'zod';
 
 const GetTasksRequest = z.object({

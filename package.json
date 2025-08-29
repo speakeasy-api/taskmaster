@@ -14,7 +14,9 @@
     "lint": "prettier --check . && eslint .",
     "test": "vitest",
     "gen:auth": "bunx @better-auth/cli generate --output ./src/lib/db/schemas/auth.ts",
-    "gen:db": "bun drizzle-kit generate"
+    "gen:db": "bun drizzle-kit generate",
+    "gen": "bun run gen:auth && bun run gen:db",
+    "migrate": "bun drizzle-kit migrate"
   },
   "devDependencies": {
     "@better-auth/cli": "^1.3.7",

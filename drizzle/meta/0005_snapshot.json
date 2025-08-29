@@ -1,6 +1,6 @@
 {
-  "id": "0379c106-fb92-46f1-b1a0-46a9fa42db91",
-  "prevId": "82da2b33-65d6-4d93-9d3d-5ced974ade58",
+  "id": "f372e302-f99d-4f9e-b2e1-caea30594cfc",
+  "prevId": "35138295-d225-42e2-aaae-fad3d5ba1b21",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -92,11 +92,11 @@
         "accounts_user_id_users_id_fk": {
           "name": "accounts_user_id_users_id_fk",
           "tableFrom": "accounts",
-          "tableTo": "users",
           "columnsFrom": ["user_id"],
+          "tableTo": "users",
           "columnsTo": ["id"],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "cascade"
         }
       },
       "compositePrimaryKeys": {},
@@ -213,13 +213,13 @@
       "uniqueConstraints": {
         "oauth_access_tokens_access_token_unique": {
           "name": "oauth_access_tokens_access_token_unique",
-          "nullsNotDistinct": false,
-          "columns": ["access_token"]
+          "columns": ["access_token"],
+          "nullsNotDistinct": false
         },
         "oauth_access_tokens_refresh_token_unique": {
           "name": "oauth_access_tokens_refresh_token_unique",
-          "nullsNotDistinct": false,
-          "columns": ["refresh_token"]
+          "columns": ["refresh_token"],
+          "nullsNotDistinct": false
         }
       },
       "policies": {},
@@ -309,11 +309,41 @@
       "uniqueConstraints": {
         "oauth_applications_client_id_unique": {
           "name": "oauth_applications_client_id_unique",
-          "nullsNotDistinct": false,
-          "columns": ["client_id"]
+          "columns": ["client_id"],
+          "nullsNotDistinct": false
         }
       },
-      "policies": {},
+      "policies": {
+        "crud-authenticated-policy-delete": {
+          "name": "crud-authenticated-policy-delete",
+          "as": "PERMISSIVE",
+          "for": "DELETE",
+          "to": ["authenticated"],
+          "using": "(select auth.user_id() = \"oauth_applications\".\"user_id\")"
+        },
+        "crud-authenticated-policy-insert": {
+          "name": "crud-authenticated-policy-insert",
+          "as": "PERMISSIVE",
+          "for": "INSERT",
+          "to": ["authenticated"],
+          "withCheck": "(select auth.user_id() = \"oauth_applications\".\"user_id\")"
+        },
+        "crud-authenticated-policy-select": {
+          "name": "crud-authenticated-policy-select",
+          "as": "PERMISSIVE",
+          "for": "SELECT",
+          "to": ["authenticated"],
+          "using": "(select auth.user_id() = \"oauth_applications\".\"user_id\")"
+        },
+        "crud-authenticated-policy-update": {
+          "name": "crud-authenticated-policy-update",
+          "as": "PERMISSIVE",
+          "for": "UPDATE",
+          "to": ["authenticated"],
+          "using": "(select auth.user_id() = \"oauth_applications\".\"user_id\")",
+          "withCheck": "(select auth.user_id() = \"oauth_applications\".\"user_id\")"
+        }
+      },
       "checkConstraints": {},
       "isRLSEnabled": false
     },
@@ -430,19 +460,19 @@
         "sessions_user_id_users_id_fk": {
           "name": "sessions_user_id_users_id_fk",
           "tableFrom": "sessions",
-          "tableTo": "users",
           "columnsFrom": ["user_id"],
+          "tableTo": "users",
           "columnsTo": ["id"],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "cascade"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
         "sessions_token_unique": {
           "name": "sessions_token_unique",
-          "nullsNotDistinct": false,
-          "columns": ["token"]
+          "columns": ["token"],
+          "nullsNotDistinct": false
         }
       },
       "policies": {},
@@ -502,8 +532,8 @@
       "uniqueConstraints": {
         "users_email_unique": {
           "name": "users_email_unique",
-          "nullsNotDistinct": false,
-          "columns": ["email"]
+          "columns": ["email"],
+          "nullsNotDistinct": false
         }
       },
       "policies": {},
@@ -609,11 +639,11 @@
         "projects_created_by_users_id_fk": {
           "name": "projects_created_by_users_id_fk",
           "tableFrom": "projects",
-          "tableTo": "users",
           "columnsFrom": ["created_by"],
+          "tableTo": "users",
           "columnsTo": ["id"],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "cascade"
         }
       },
       "compositePrimaryKeys": {},
@@ -709,37 +739,37 @@
         "task_dependencies_task_id_tasks_id_fk": {
           "name": "task_dependencies_task_id_tasks_id_fk",
           "tableFrom": "task_dependencies",
-          "tableTo": "tasks",
           "columnsFrom": ["task_id"],
+          "tableTo": "tasks",
           "columnsTo": ["id"],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "cascade"
         },
         "task_dependencies_depends_on_task_id_tasks_id_fk": {
           "name": "task_dependencies_depends_on_task_id_tasks_id_fk",
           "tableFrom": "task_dependencies",
-          "tableTo": "tasks",
           "columnsFrom": ["depends_on_task_id"],
+          "tableTo": "tasks",
           "columnsTo": ["id"],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "cascade"
         },
         "task_dependencies_created_by_users_id_fk": {
           "name": "task_dependencies_created_by_users_id_fk",
           "tableFrom": "task_dependencies",
-          "tableTo": "users",
           "columnsFrom": ["created_by"],
+          "tableTo": "users",
           "columnsTo": ["id"],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "cascade"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
         "task_dependencies_task_id_depends_on_task_id_unique": {
           "name": "task_dependencies_task_id_depends_on_task_id_unique",
-          "nullsNotDistinct": false,
-          "columns": ["task_id", "depends_on_task_id"]
+          "columns": ["task_id", "depends_on_task_id"],
+          "nullsNotDistinct": false
         }
       },
       "policies": {
@@ -823,8 +853,8 @@
           "primaryKey": false,
           "notNull": false,
           "generated": {
-            "as": "\n        setweight(to_tsvector('english', COALESCE(title, '')), 'A') ||\n        setweight(to_tsvector('english', COALESCE(description, '')), 'B')\n      ",
-            "type": "stored"
+            "type": "stored",
+            "as": "\n        setweight(to_tsvector('english', COALESCE(title, '')), 'A') ||\n        setweight(to_tsvector('english', COALESCE(description, '')), 'B')\n      "
           }
         },
         "status": {
@@ -861,29 +891,29 @@
             }
           ],
           "isUnique": false,
-          "concurrently": false,
+          "with": {},
           "method": "gin",
-          "with": {}
+          "concurrently": false
         }
       },
       "foreignKeys": {
         "tasks_created_by_users_id_fk": {
           "name": "tasks_created_by_users_id_fk",
           "tableFrom": "tasks",
-          "tableTo": "users",
           "columnsFrom": ["created_by"],
+          "tableTo": "users",
           "columnsTo": ["id"],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "cascade"
         },
         "tasks_project_id_projects_id_fk": {
           "name": "tasks_project_id_projects_id_fk",
           "tableFrom": "tasks",
-          "tableTo": "projects",
           "columnsFrom": ["project_id"],
+          "tableTo": "projects",
           "columnsTo": ["id"],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "cascade"
         }
       },
       "compositePrimaryKeys": {},
@@ -936,10 +966,10 @@
     }
   },
   "schemas": {},
+  "views": {},
   "sequences": {},
   "roles": {},
   "policies": {},
-  "views": {},
   "_meta": {
     "columns": {},
     "schemas": {},

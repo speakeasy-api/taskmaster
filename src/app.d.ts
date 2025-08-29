@@ -1,4 +1,4 @@
-import type { AuthentictedDbClient } from '$lib/db';
+import type { AuthenticatedDbClient } from '$lib/server/event-utilities/db';
 
 // See https://svelte.dev/docs/kit/types#app.d.ts
 // for information about these interfaces
@@ -6,16 +6,19 @@ declare global {
   namespace App {
     // interface Error {}
     interface Locals {
-      validateSession: () => Promise<ValidateSessionResult>;
-
+      /** Log to server console (or any other logging system you set up) */
       log: (...args: unknown[]) => void;
+      /** Log an error to server console (or any other logging system you set up) */
       logError: (...args: unknown[]) => void;
+
+      /** Get a valid session cookie or redirect to login. */
+      validateSession: () => Promise<ValidateSessionResult>;
 
       /** Send a message to the client that will be displayed as a toast. */
       sendFlashMessage: (params: Omit<FlashMessage, 'createdAt'>) => void;
 
       /** Database connection that includes the JWT for the current user (if any) */
-      db: AuthentictedDbClient;
+      db: AuthenticatedDbClient;
     }
     // interface PageData {}
     // interface PageState {}
@@ -27,7 +30,11 @@ declare global {
     user: import('better-auth').User;
     jwt: string;
   }>;
+
   type FlashMessage = { title: string; description: string; createdAt: number };
+
+  // Utility types
+  type MaybePromise<T> = T | Promise<T>;
   type StoreValue<T> = T extends import('svelte/store').Readable<infer U> ? U : never;
 }
 

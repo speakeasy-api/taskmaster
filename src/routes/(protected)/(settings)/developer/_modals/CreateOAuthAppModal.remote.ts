@@ -20,7 +20,11 @@ export const registerOAuthApp = command(RegisterOAuthAppRequest, async (data) =>
     });
     return result;
   } catch (err) {
-    console.error('Failed to register OAuth application:', err);
+    locals.sendFlashMessage({
+      title: 'Error',
+      description: 'There was an error registering the OAuth application.'
+    });
+    locals.logError('Failed to register OAuth application:', err);
     error(500, 'Failed to register OAuth application');
   }
 });

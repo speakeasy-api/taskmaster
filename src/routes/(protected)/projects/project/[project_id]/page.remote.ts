@@ -3,7 +3,7 @@ import { projects, tasks } from '$lib/db/schemas/schema';
 import { fail, redirect } from '@sveltejs/kit';
 import { eq } from 'drizzle-orm';
 import { DeleteProjectRequest, DeleteTaskRequest, UpdateTaskStatusRequest } from './page.schemas';
-import { validateForm } from '$lib/util.server';
+import { validateForm } from '$lib/server/remote-fns';
 
 export const deleteProject = form(async (formData) => {
   const { locals } = getRequestEvent();

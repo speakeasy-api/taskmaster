@@ -1,6 +1,7 @@
 import { form, getRequestEvent } from '$app/server';
 import { auth } from '$lib/auth';
-import { fail, redirect } from '@sveltejs/kit';
+import { sendFlashMessage } from '$lib/server/event-utilities';
+import { error, redirect } from '@sveltejs/kit';
 
 export const deleteUserAccount = form(async () => {
   const { request, locals } = getRequestEvent();
@@ -13,21 +14,29 @@ export const deleteUserAccount = form(async () => {
       },
       headers: request.headers
     });
-  } catch (error) {
-    locals.logError('Error deleting user account:', error);
-    return fail(500, { message: 'Failed to delete account. Please try again.' });
+  } catch (e) {
+    sendFlashMessage({
+      title: 'Error',
+      description: 'There was an error deleting your account.'
+    });
+    locals.logError('Error deleting user account:', e);
+    return error(500);
   }
 
   if (!result.success) {
+    locals.sendFlashMessage({
+      title: 'Error',
+      description: 'Failed to delete your account. Please try again.'
+    });
     locals.logError('Failed to delete user account:', result.message);
-    return fail(500, { message: 'Failed to delete account. Please try again.' });
+    return error(500, { message: 'Failed to delete account. Please try again.' });
   }
 
   locals.sendFlashMessage({
     title: 'Account Deleted',
     description: 'Your account has been successfully deleted.'
   });
+  locals.logError('User account deleted:', result);
 
-  locals.logError('User account deletion initiated:', result);
   return redirect(302, '/sign-in');
 });

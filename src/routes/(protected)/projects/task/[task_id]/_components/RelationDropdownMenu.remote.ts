@@ -1,6 +1,6 @@
 import { form, getRequestEvent } from '$app/server';
 import { taskDependencyTypeEnum, taskDependencies } from '$lib/db/schemas/schema';
-import { validateForm } from '$lib/util.server';
+import { validateForm } from '$lib/server/remote-fns';
 import { and, eq, type InferEnum } from 'drizzle-orm';
 import z from 'zod';
 
