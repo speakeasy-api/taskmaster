@@ -4,7 +4,6 @@ import { createRemoteJWKSet, jwtVerify } from 'jose';
 const JWKS = createRemoteJWKSet(new URL(`${BETTER_AUTH_URL}/api/auth/jwks`));
 
 export const verifyJwt = async (token: string) => {
-  console.log('Verifying JWT:', `${BETTER_AUTH_URL}/api/auth/jwks`);
   try {
     const { payload } = await jwtVerify(token, JWKS, {
       algorithms: ['ES256'],
