@@ -2,7 +2,12 @@ import { getClient, type CodeVerificationValue } from '../../index.js';
 import { verifyStoredClientSecret, type OIDCOptionsWithDefaults } from '../../utils.js';
 import { APIError } from 'better-auth/api';
 import { generateRandomString } from 'better-auth/crypto';
-import { extractClientCredentials, parseRequestBody, validateCodeChallenge } from './common';
+import {
+  extractClientCredentials,
+  generateAccessToken,
+  parseRequestBody,
+  validateCodeChallenge
+} from './common';
 import type { AuthorizationCodeRequestBody, TokenEndpointContext } from './types';
 
 export async function handleAuthorizationCodeFlow(
@@ -118,7 +123,7 @@ export async function handleAuthorizationCodeFlow(
   await ctx.context.internalAdapter.deleteVerificationValue(verification.id);
 
   // Generate tokens
-  const accessToken = generateRandomString(32, 'a-z', 'A-Z');
+  // const accessToken = generateRandomString(32, 'a-z', 'A-Z');
   const accessTokenExpiresAt = new Date(Date.now() + opts.accessTokenExpiresIn * 1000);
   let refreshToken: string | null = null;
   let refreshTokenExpiresAt: Date | null = null;
@@ -130,16 +135,13 @@ export async function handleAuthorizationCodeFlow(
   }
 
   // Generate ID token if openid scope is present
-  const idToken: string | null = null;
-  // if (codeData.scope.includes('openid')) {
-  //   idToken = await generateIdToken({
-  //     ctx,
-  //     userId: codeData.userId,
-  //     clientId: client.clientId,
-  //     opts,
-  //     token: accessToken
-  //   });
-  // }
+  const accessToken = await generateAccessToken({
+    ctx,
+    userId: codeData.userId,
+    clientId: client.clientId,
+    opts,
+    expiresAt: accessTokenExpiresAt
+  });
 
   // Store the access token
   await ctx.context.adapter.create({
@@ -165,10 +167,6 @@ export async function handleAuthorizationCodeFlow(
 
   if (refreshToken) {
     tokenResponse.refresh_token = refreshToken;
-  }
-
-  if (idToken) {
-    tokenResponse.id_token = idToken;
   }
 
   return ctx.json(tokenResponse, {

@@ -1,7 +1,8 @@
 import { resolve } from '$app/paths';
 import { getRequestEvent } from '$app/server';
 import { auth } from '$lib/auth';
-import { redirect } from '@sveltejs/kit';
+import { error, redirect } from '@sveltejs/kit';
+import { verifyJwt } from '../jwt';
 
 const clearAuthCookies = () => {
   const { cookies } = getRequestEvent();
@@ -77,5 +78,34 @@ export const createSessionValidator = (): (() => Promise<ValidateSessionResult>)
     };
 
     return validatedSession;
+  };
+};
+
+export const createBearerTokenValidator = (): (() => Promise<{ jwt: string }>) => {
+  const { request } = getRequestEvent();
+
+  return async () => {
+    const authHeader = request.headers.get('Authorization');
+
+    if (!authHeader) {
+      error(401, { message: 'Authorization header missing' });
+    }
+    if (!authHeader.startsWith('Bearer ')) {
+      error(401, { message: 'Invalid Authorization header format' });
+    }
+
+    const parts = authHeader.split(' ');
+
+    if (parts.length !== 2) {
+      error(401, { message: 'Invalid Authorization header format' });
+    }
+    const providedToken = parts[1];
+    const jwtPayload = await verifyJwt(providedToken);
+
+    if (!jwtPayload.valid) {
+      error(401, { message: 'Invalid or expired token' });
+    }
+
+    return { jwt: providedToken };
   };
 };

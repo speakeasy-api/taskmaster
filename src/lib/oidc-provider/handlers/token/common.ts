@@ -1,7 +1,7 @@
+import { BETTER_AUTH_URL } from '$env/static/private';
 import { APIError } from 'better-auth/api';
 import { generateRandomString } from 'better-auth/crypto';
 import { getJwtToken, type jwt } from 'better-auth/plugins/jwt';
-import { getMetadata } from 'better-auth/plugins/oidc-provider';
 import type { OIDCOptionsWithDefaults } from '../../utils.js';
 import {
   AuthorizationCodeRequestBodySchema,
@@ -94,89 +94,76 @@ export async function extractClientCredentials(
   return parseResult.data;
 }
 
-export async function generateIdToken(params: {
+export async function generateAccessToken(params: {
   ctx: TokenEndpointContext;
   userId: string;
   clientId: string;
   opts: OIDCOptionsWithDefaults;
-  token: string;
-}): Promise<string | null> {
-  const { ctx, userId, clientId, opts, token } = params;
+  expiresAt: Date;
+}): Promise<string> {
+  const { ctx, userId } = params;
 
-  if (!opts.useJWTPlugin) {
-    console.error('JWT plugin is not enabled, cannot generate ID token');
-    throw new APIError('INTERNAL_SERVER_ERROR');
-  }
-
-  const jwtPlugin = ctx.context.options.plugins?.find(
-    (plugin) => plugin.id === 'jwt'
-  ) as ReturnType<typeof jwt>;
+  const jwtPlugin = ctx.context.options.plugins?.find((plugin) => {
+    return plugin.id === 'jwt';
+  }) as ReturnType<typeof jwt>;
 
   if (!jwtPlugin) {
-    return null;
+    throw ctx.error('INTERNAL_SERVER_ERROR', {
+      message: 'JWT plugin is not configured'
+    });
   }
 
   const user = await ctx.context.internalAdapter.findUserById(userId);
   if (!user) {
-    return null;
+    throw ctx.error('BAD_REQUEST', {
+      code: 'invalid_request',
+      message: 'User not found'
+    });
   }
 
-  const metadata = getMetadata(ctx, opts);
-  const now = Math.floor(Date.now() / 1000);
-  const expiresIn = 3600; // ID tokens typically expire in 1 hour
-
-  // Build the ID token claims
-  const claims: Record<string, unknown> = {
-    sub: user.id,
-    iss: metadata.issuer,
-    aud: clientId,
-    exp: now + expiresIn,
-    iat: now,
-    auth_time: now
-  };
-
-  // Add profile claims if profile scope is requested
-  if (opts.scopes.includes('profile') && user.name) {
-    claims.name = user.name;
-    const nameParts = user.name.split(' ');
-    if (nameParts.length > 0) claims.given_name = nameParts[0];
-    if (nameParts.length > 1) claims.family_name = nameParts.slice(1).join(' ');
-  }
-
-  // Add email claims if email scope is requested
-  if (opts.scopes.includes('email') && user.email) {
-    claims.email = user.email;
-    claims.email_verified = user.emailVerified || false;
-  }
-
-  // Add picture if available and profile scope is requested
-  if (opts.scopes.includes('profile') && user.image) {
-    claims.picture = user.image;
-  }
-
-  try {
-    return getJwtToken({
+  const result = await getJwtToken(
+    {
       ...ctx,
       context: {
         ...ctx.context,
         session: {
           session: {
-            id: generateRandomString(32, 'a-z', 'A-Z'),
+            id: 'does-not-matter',
             createdAt: new Date(),
             updatedAt: new Date(),
             userId: user.id,
-            expiresAt: new Date(Date.now() + opts.accessTokenExpiresIn * 1000),
-            token,
-            ipAddress: ctx.request?.headers.get('x-forwarded-for')
+            expiresAt: new Date(),
+            token: 'does-not-matter',
+            ipAddress: 'does-not-matter'
           },
           user
         }
       }
-    });
-  } catch (error) {
-    console.error('Error signing ID token:', error);
-    return null;
-  }
+    },
+    {
+      jwt: {
+        definePayload: (params) => {
+          return {
+            iss: BETTER_AUTH_URL,
+            aud: BETTER_AUTH_URL,
+            sub: params.session.userId,
+            iat: Math.floor(Date.now() / 1000),
+            exp:
+              Math.floor((params.session.expiresAt.getTime() - Date.now()) / 1000) +
+              Math.floor(Date.now() / 1000),
+            jti: generateRandomString(32, 'a-z', 'A-Z')
+          };
+        }
+      },
+      jwks: {
+        keyPairConfig: {
+          alg: 'ES256'
+        }
+      }
+    }
+  );
+
+  return result;
 }
 
 export async function parseRequestBody(

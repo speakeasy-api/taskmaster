@@ -14,6 +14,8 @@ declare global {
       /** Get a valid session cookie or redirect to login. */
       validateSession: () => Promise<ValidateSessionResult>;
 
+      validateBearerToken: () => Promise<{ jwt: string }>;
+
       /** Send a message to the client that will be displayed as a toast. */
       sendFlashMessage: (params: Omit<FlashMessage, 'createdAt'>) => void;
 
@@ -23,6 +25,11 @@ declare global {
     // interface PageData {}
     // interface PageState {}
     // interface Platform {}
+    //
+    interface Error {
+      message?: string;
+      errors?: unknown;
+    }
   }
 
   type ValidateSessionResult = Readonly<{

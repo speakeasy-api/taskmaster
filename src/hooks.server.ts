@@ -1,24 +1,33 @@
 import { building } from '$app/environment';
+import type { RouteId } from '$app/types';
 import { auth } from '$lib/auth';
-import { type Handle } from '@sveltejs/kit';
-import { svelteKitHandler } from 'better-auth/svelte-kit';
 import {
+  createAuthenticatedDb,
+  createBearerTokenValidator,
+  createSessionValidator,
   log,
   logError,
-  sendFlashMessage,
-  createSessionValidator,
-  authenticatedDb
+  sendFlashMessage
 } from '$lib/server/event-utilities';
+import { type Handle } from '@sveltejs/kit';
+import { svelteKitHandler } from 'better-auth/svelte-kit';
+
+const SESSION_PROTECTED_ROUTE_ID_PREFIX: RouteId = '/(protected)';
+const BEARER_TOKEN_PROTECTED_ROUTE_ID_PREFIX: RouteId = '/api/(protected)';
 
 export const handle: Handle = async ({ event, resolve }) => {
   event.locals.log = log;
   event.locals.logError = logError;
   event.locals.sendFlashMessage = sendFlashMessage;
   event.locals.validateSession = createSessionValidator();
-  event.locals.db = authenticatedDb;
+  event.locals.validateBearerToken = createBearerTokenValidator();
 
-  if (event.route.id?.startsWith('/(protected)')) {
+  if (event.route.id?.startsWith(SESSION_PROTECTED_ROUTE_ID_PREFIX)) {
     await event.locals.validateSession();
+    event.locals.db = createAuthenticatedDb('session');
+  } else if (event.route.id?.startsWith(BEARER_TOKEN_PROTECTED_ROUTE_ID_PREFIX)) {
+    await event.locals.validateBearerToken();
+    event.locals.db = createAuthenticatedDb('bearer');
   }
 
   return svelteKitHandler({ event, resolve, auth, building });
