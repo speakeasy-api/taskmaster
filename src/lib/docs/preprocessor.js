@@ -1,12 +1,14 @@
-import { escapeSvelte, mdsvex, type code_highlighter } from 'mdsvex';
+import { escapeSvelte, mdsvex } from 'mdsvex';
 import { join } from 'path';
-import { type BundledLanguage, codeToHtml } from 'shiki';
-import type { PreprocessorGroup } from 'svelte/compiler';
+import { codeToHtml } from 'shiki';
 
-const langs: BundledLanguage[] = ['bash', 'json'];
+/** @type {import('shiki').BundledLanguage[]} */
+const langs = ['bash', 'json'];
 
-const highlighter: typeof code_highlighter = async (code, lang) => {
-  if (!lang || !langs.includes(lang as BundledLanguage)) {
+/** @type {typeof import('mdsvex').code_highlighter} */
+const highlighter = async (code, lang) => {
+  // @ts-expect-error - lang is string but shiki expects BundledLanguage
+  if (!lang || !langs.includes(lang)) {
     lang = 'text';
   }
 
@@ -35,7 +37,8 @@ const mdsvexPreprocessor = mdsvex({
   highlight: { highlighter }
 });
 
-const mdPreprocessorGroup: PreprocessorGroup = {
+/** @type {import('svelte/compiler').PreprocessorGroup} */
+const mdPreprocessorGroup = {
   name: 'mdsvex',
   markup({ content, filename }) {
     if (!filename) return { code: content };
