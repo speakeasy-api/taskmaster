@@ -1,4 +1,5 @@
 import { getRequestEvent } from '$app/server';
+import type { RouteId } from '$app/types';
 
 export function createUserIdGetter(strategy: 'session' | 'bearer'): () => Promise<string> {
   const { locals } = getRequestEvent();
@@ -19,26 +20,30 @@ export function createUserIdGetter(strategy: 'session' | 'bearer'): () => Promis
 
   throw new Error('Invalid authentication strategy');
 }
-// export async function getAuthenticatedUserId(): Promise<string> {
-//   const { locals } = getRequestEvent();
-//
-//   // First try to get from bearer token validation (for API routes)
-//   try {
-//     const { jwt } = await locals.validateBearerToken();
-//     const jwtPayload = await verifyJwt(jwt);
-//
-//     if (!jwtPayload.valid || !jwtPayload.payload?.sub) {
-//       throw new Error('Invalid JWT token - no user ID found');
-//     }
-//
-//     return jwtPayload.payload.sub as string;
-//   } catch (bearerError) {
-//     // Fall back to session validation (for protected app routes)
-//     try {
-//       const session = await locals.validateSession();
-//       return session.user.id;
-//     } catch (sessionError) {
-//       throw new Error('No valid authentication context found');
-//     }
-//   }
-// }
+
+const SESSION_PROTECTED_ROUTE_ID_PREFIXES: RouteId[] = ['/(protected)'] as const;
+const BEARER_PROTECTED_ROUTE_ID_PREFIXES: RouteId[] = ['/api/(protected)'];
+
+/** Determine the authentication type required for the current request's route. */
+export const getAuthTypeForRoute = (): 'session' | 'bearer' | 'none' => {
+  const { route, isRemoteRequest } = getRequestEvent();
+
+  if (isRemoteRequest) return 'session';
+
+  const isSessionProtected = SESSION_PROTECTED_ROUTE_ID_PREFIXES.some((prefix) =>
+    route.id?.startsWith(prefix)
+  );
+  if (isSessionProtected) return 'session';
+
+  const isBearerProtected = BEARER_PROTECTED_ROUTE_ID_PREFIXES.some((prefix) =>
+    route.id?.startsWith(prefix)
+  );
+  if (isBearerProtected) return 'bearer';
+
+  if (route.id?.includes('(protected)'))
+    throw new Error(
+      `Resource is protected but does not match any known authentication strategies.`
+    );
+
+  return 'none';
+};
