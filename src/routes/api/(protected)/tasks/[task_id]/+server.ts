@@ -4,6 +4,7 @@ import { json } from '@sveltejs/kit';
 import { and, eq } from 'drizzle-orm';
 import z from 'zod';
 import type { RequestHandler } from './$types.js';
+import { SQL_NOW } from '$lib/db/helpers.js';
 
 export const PUT: RequestHandler = async ({ locals }) => {
   const { body, params } = await validateRequest({
@@ -26,7 +27,7 @@ export const PUT: RequestHandler = async ({ locals }) => {
     const userId = await locals.getUserId();
     const result = await locals.db
       .update(tasks)
-      .set(body)
+      .set({ ...body, updated_at: SQL_NOW })
       .where(and(eq(tasks.created_by, userId), eq(tasks.id, params.task_id)))
       .returning();
     if (result.length === 0) {

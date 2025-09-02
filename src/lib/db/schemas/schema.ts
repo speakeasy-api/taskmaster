@@ -13,6 +13,7 @@ import {
   varchar
 } from 'drizzle-orm/pg-core';
 import { users } from './auth';
+import { SQL_NOW } from '../helpers';
 
 const tsvector = customType<{ data: string }>({
   dataType() {
@@ -21,13 +22,11 @@ const tsvector = customType<{ data: string }>({
 });
 
 const timestamps = {
-  created_at: timestamp({ withTimezone: true, mode: 'date' })
-    .default(sql`(now() AT TIME ZONE 'utc'::text)`)
-    .notNull(),
+  created_at: timestamp({ withTimezone: true, mode: 'date' }).default(SQL_NOW).notNull(),
   updated_at: timestamp({ withTimezone: true, mode: 'date' })
     .default(sql`(now() AT TIME ZONE 'utc'::text)`)
     .notNull()
-    .$onUpdate(() => sql`(now() AT TIME ZONE 'utc'::text)`)
+    .$onUpdate(() => SQL_NOW)
 };
 
 const createdBy = text()

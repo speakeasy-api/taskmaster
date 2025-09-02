@@ -4,6 +4,7 @@ import { fail, redirect } from '@sveltejs/kit';
 import { eq } from 'drizzle-orm';
 import { DeleteProjectRequest, DeleteTaskRequest, UpdateTaskStatusRequest } from './page.schemas';
 import { validateForm } from '$lib/server/remote-fns';
+import { SQL_NOW } from '$lib/db/helpers';
 
 export const deleteProject = form(async (formData) => {
   const { locals } = getRequestEvent();
@@ -50,7 +51,10 @@ export const updateTaskStatus = form(async (formData) => {
 
   const { id, status } = validatedReq.data;
 
-  const result = await locals.db.update(tasks).set({ status }).where(eq(tasks.id, id));
+  const result = await locals.db
+    .update(tasks)
+    .set({ status, updated_at: SQL_NOW })
+    .where(eq(tasks.id, id));
 
   if (result.rowCount === 0) {
     return fail(404, { message: 'Task not found or you do not have permission to update it.' });

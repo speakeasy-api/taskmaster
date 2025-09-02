@@ -1,4 +1,5 @@
 import { form, getRequestEvent } from '$app/server';
+import { SQL_NOW } from '$lib/db/helpers';
 import { taskDependencyTypeEnum, taskDependencies } from '$lib/db/schemas/schema';
 import { validateForm } from '$lib/server/remote-fns';
 import { and, eq, type InferEnum } from 'drizzle-orm';
@@ -66,7 +67,7 @@ export const updateDependencyTypeForm = form(async (formData) => {
   // Update the dependency
   const result = await locals.db
     .update(taskDependencies)
-    .set(updates)
+    .set({ ...updates, updated_at: SQL_NOW })
     .where(and(eq(taskDependencies.created_by, user.id), eq(taskDependencies.id, id)));
 
   // Handle result

@@ -4,6 +4,7 @@ import { taskDependencies, taskDependencyTypeEnum } from '$lib/db/schemas/schema
 import { eq, and } from 'drizzle-orm';
 import z from 'zod';
 import { validateRequest } from '$lib/server/event-utilities/validation.js';
+import { SQL_NOW } from '$lib/db/helpers.js';
 
 const ParamsSchema = z.object({ task_id: z.string().uuid(), relationship_id: z.string().uuid() });
 
@@ -19,7 +20,7 @@ export const PUT: RequestHandler = async ({ locals }) => {
   const userId = await locals.getUserId();
   const updateResult = await locals.db
     .update(taskDependencies)
-    .set({ dependency_type: body.relationship_type })
+    .set({ dependency_type: body.relationship_type, updated_at: SQL_NOW })
     .where(
       and(
         eq(taskDependencies.created_by, userId),
