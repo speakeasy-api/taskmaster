@@ -2,6 +2,7 @@ import { resolve } from '$app/paths';
 import { getRequestEvent } from '$app/server';
 import { auth } from '$lib/auth';
 import { error, redirect } from '@sveltejs/kit';
+import z from 'zod';
 import { verifyJwt } from '../jwt';
 
 const clearAuthCookies = () => {
@@ -81,10 +82,24 @@ export const createSessionValidator = (): (() => Promise<ValidateSessionResult>)
   };
 };
 
-export const createBearerTokenValidator = (): (() => Promise<{ jwt: string }>) => {
-  const { request } = getRequestEvent();
+const MinimumJwtPayloadSchema = z.object({
+  sub: z.string()
+});
+
+export type ValidateBearerTokenResult = {
+  jwt: string;
+  user: {
+    id: string;
+  };
+};
+
+export const createBearerTokenValidator = (): (() => Promise<ValidateBearerTokenResult>) => {
+  const { request, locals } = getRequestEvent();
+  let validatedToken: ValidateBearerTokenResult | null = null;
 
   return async () => {
+    if (validatedToken) return validatedToken;
+
     const authHeader = request.headers.get('Authorization');
 
     if (!authHeader) {
@@ -102,10 +117,17 @@ export const createBearerTokenValidator = (): (() => Promise<{ jwt: string }>) =
     const providedToken = parts[1];
     const jwtPayload = await verifyJwt(providedToken);
 
-    if (!jwtPayload.valid) {
+    if (!jwtPayload.valid || !jwtPayload.payload) {
       error(401, { message: 'Invalid or expired token' });
     }
 
-    return { jwt: providedToken };
+    const parseResult = MinimumJwtPayloadSchema.safeParse(jwtPayload.payload);
+    if (!parseResult.success) {
+      locals.logError('JWT payload is missing required fields:', parseResult.error);
+      error(401, { message: 'Invalid token payload' });
+    }
+
+    validatedToken = { jwt: providedToken, user: { id: parseResult.data.sub } };
+    return validatedToken;
   };
 };

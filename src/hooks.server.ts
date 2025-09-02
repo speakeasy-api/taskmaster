@@ -5,6 +5,7 @@ import {
   createAuthenticatedDb,
   createBearerTokenValidator,
   createSessionValidator,
+  createUserIdGetter,
   log,
   logError,
   sendFlashMessage
@@ -25,9 +26,11 @@ export const handle: Handle = async ({ event, resolve }) => {
   if (event.route.id?.startsWith(SESSION_PROTECTED_ROUTE_ID_PREFIX)) {
     await event.locals.validateSession();
     event.locals.db = createAuthenticatedDb('session');
+    event.locals.getUserId = createUserIdGetter('session');
   } else if (event.route.id?.startsWith(BEARER_TOKEN_PROTECTED_ROUTE_ID_PREFIX)) {
     await event.locals.validateBearerToken();
     event.locals.db = createAuthenticatedDb('bearer');
+    event.locals.getUserId = createUserIdGetter('bearer');
   }
 
   return svelteKitHandler({ event, resolve, auth, building });

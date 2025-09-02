@@ -1,21 +1,18 @@
-import { db } from '$lib/db/index.js';
 import { projects } from '$lib/db/schemas/schema.js';
-import { and, eq } from 'drizzle-orm';
-import { validateAuthHeader } from '../../tasks/_helpers.js';
+import { eq, and } from 'drizzle-orm';
 import type { RequestHandler } from './$types.js';
+import { validateRequest } from '$lib/server/event-utilities/validation.js';
+import z from 'zod';
 
-export const DELETE: RequestHandler = async ({ request, params }) => {
-  const validToken = await validateAuthHeader(request.headers.get('Authorization'));
-  if (!validToken) return new Response('Unauthorized', { status: 401 });
+export const DELETE: RequestHandler = async ({ locals }) => {
+  const { params } = await validateRequest({
+    paramsSchema: z.object({ id: z.string().uuid() })
+  });
 
-  const authedUserId = validToken.userId;
-  if (!authedUserId) {
-    return new Response('Invalid token', { status: 400 });
-  }
-
-  const result = await db
+  const userId = await locals.getUserId();
+  const result = await locals.db
     .delete(projects)
-    .where(and(eq(projects.created_by, authedUserId), eq(projects.id, params.id)));
+    .where(and(eq(projects.created_by, userId), eq(projects.id, params.id)));
 
   if (result.rowCount === 0) return new Response('Not Found', { status: 404 });
 

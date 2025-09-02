@@ -1,9 +1,18 @@
-import { db } from '$lib/db/index.js';
-import { json } from '@sveltejs/kit';
-import type { RequestHandler } from './$types.js';
-import { validateAuthHeader } from '../tasks/_helpers.js';
 import { projects } from '$lib/db/schemas/schema.js';
+import { validateRequest } from '$lib/server/event-utilities/validation.js';
+import { json } from '@sveltejs/kit';
 import z from 'zod';
+import type { RequestHandler } from './$types.js';
+
+export const GET: RequestHandler = async ({ locals }) => {
+  const userId = await locals.getUserId();
+
+  const result = await locals.db.query.projects.findMany({
+    where: (table, { eq }) => eq(table.created_by, userId)
+  });
+
+  return json(result);
+};
 
 const CreateProjectSchema = z.object({
   name: z.string().min(1, 'Name is required').max(255, 'Name must be 255 characters or less'),
@@ -13,52 +22,18 @@ const CreateProjectSchema = z.object({
     .max(500, 'Description must be 500 characters or less')
 });
 
-export const GET: RequestHandler = async ({ request }) => {
-  const validToken = await validateAuthHeader(request.headers.get('Authorization'));
-  if (!validToken) return new Response('Unauthorized', { status: 401 });
-
-  const authedUserId = validToken.userId;
-  if (!authedUserId) {
-    return new Response('Invalid token', { status: 400 });
-  }
-
-  const result = await db.query.projects.findMany({
-    where: (table, { eq }) => eq(table.created_by, authedUserId)
+export const POST: RequestHandler = async ({ locals }) => {
+  const { body } = await validateRequest({
+    bodySchema: CreateProjectSchema
   });
 
-  return json(result);
-};
+  const { name, description } = body;
 
-export const POST: RequestHandler = async ({ request }) => {
-  const validToken = await validateAuthHeader(request.headers.get('Authorization'));
-  if (!validToken) return new Response('Unauthorized', { status: 401 });
-
-  const authedUserId = validToken.userId;
-  if (!authedUserId) {
-    return new Response('Invalid token', { status: 400 });
-  }
-
-  let requestBody;
-  try {
-    requestBody = await request.json();
-  } catch {
-    return json({ message: 'Invalid JSON in request body' }, { status: 400 });
-  }
-
-  const validation = CreateProjectSchema.safeParse(requestBody);
-  if (!validation.success) {
-    const errors = validation.error.flatten().fieldErrors;
-    return json({ message: 'Invalid request data', errors }, { status: 400 });
-  }
-
-  const { name, description } = validation.data;
-
-  const insertResult = await db
+  const insertResult = await locals.db
     .insert(projects)
     .values({
       name,
-      description,
-      created_by: authedUserId
+      description
     })
     .returning();
 

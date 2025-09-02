@@ -1,13 +1,13 @@
 import { tasks, taskStatusEnum } from '$lib/db/schemas/schema.js';
+import { validateRequest } from '$lib/server/event-utilities/validation.js';
 import { json } from '@sveltejs/kit';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import z from 'zod';
-import { validateRequest } from '../_helpers.js';
 import type { RequestHandler } from './$types.js';
 
 export const PUT: RequestHandler = async ({ locals }) => {
   const { body, params } = await validateRequest({
-    paramsSchema: z.object({ id: z.string().uuid() }),
+    paramsSchema: z.object({ task_id: z.string().uuid() }),
     bodySchema: z.object({
       title: z.string().max(255).optional(),
       description: z.string().max(500).optional(),
@@ -23,10 +23,11 @@ export const PUT: RequestHandler = async ({ locals }) => {
 
   // Update the task
   try {
+    const userId = await locals.getUserId();
     const result = await locals.db
       .update(tasks)
       .set(body)
-      .where(eq(tasks.id, params.id))
+      .where(and(eq(tasks.created_by, userId), eq(tasks.id, params.task_id)))
       .returning();
     if (result.length === 0) {
       return new Response('Not Found', { status: 404 });
@@ -40,9 +41,15 @@ export const PUT: RequestHandler = async ({ locals }) => {
 
 export const DELETE: RequestHandler = async ({ locals }) => {
   const { params } = await validateRequest({
-    paramsSchema: z.object({ id: z.string().uuid() })
+    paramsSchema: z.object({ task_id: z.string().uuid() })
   });
-  const result = await locals.db.delete(tasks).where(eq(tasks.id, params.id));
-  if (result.rowCount === 0) return new Response('Not Found', { status: 404 });
+
+  const userId = await locals.getUserId();
+  const result = await locals.db
+    .delete(tasks)
+    .where(and(eq(tasks.id, params.task_id), eq(tasks.created_by, userId)));
+
+  if (result.rowCount === 0) return new Response('Not found', { status: 404 });
+
   return new Response(null, { status: 204 });
 };

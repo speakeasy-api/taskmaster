@@ -1,3 +1,4 @@
+import type { ValidateBearerTokenResult } from '$lib/server/event-utilities';
 import type { AuthenticatedDbClient } from '$lib/server/event-utilities/db';
 
 // See https://svelte.dev/docs/kit/types#app.d.ts
@@ -14,7 +15,9 @@ declare global {
       /** Get a valid session cookie or redirect to login. */
       validateSession: () => Promise<ValidateSessionResult>;
 
-      validateBearerToken: () => Promise<{ jwt: string }>;
+      validateBearerToken: () => Promise<ValidateBearerTokenResult>;
+
+      getUserId: () => Promise<string>;
 
       /** Send a message to the client that will be displayed as a toast. */
       sendFlashMessage: (params: Omit<FlashMessage, 'createdAt'>) => void;

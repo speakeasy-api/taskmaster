@@ -2,21 +2,20 @@ import { tasks, taskStatusEnum } from '$lib/db/schemas/schema.js';
 import { json } from '@sveltejs/kit';
 import z from 'zod';
 import type { RequestHandler } from './$types.js';
-import { validateRequest } from './_helpers.js';
+import { validateRequest } from '$lib/server/event-utilities/validation.js';
 
 export const GET: RequestHandler = async ({ locals }) => {
-  const reqValidation = await validateRequest({
+  const { query } = await validateRequest({
     querySchema: z.object({ project_id: z.string().uuid().optional() })
   });
 
-  const { project_id } = reqValidation.query;
+  const { project_id } = query;
+  const userId = await locals.getUserId();
 
   const result = await locals.db.query.tasks.findMany({
     where: (table, { eq, and }) => {
-      const conditions = [];
-      if (project_id) {
-        conditions.push(eq(table.project_id, project_id));
-      }
+      const conditions = [eq(table.created_by, userId)];
+      if (project_id) conditions.push(eq(table.project_id, project_id));
       return and(...conditions);
     }
   });
@@ -35,21 +34,11 @@ const CreateTaskSchema = z.object({
 });
 
 export const POST: RequestHandler = async ({ locals }) => {
-  const reqValidation = await validateRequest({
+  const { body } = await validateRequest({
     bodySchema: CreateTaskSchema
   });
 
-  const { title, description, project_id, status } = reqValidation.body;
-
-  const result = await locals.db
-    .insert(tasks)
-    .values({
-      title,
-      description,
-      project_id: project_id,
-      status
-    })
-    .returning();
+  const result = await locals.db.insert(tasks).values(body).returning();
 
   if (result.length === 0) {
     return json({ message: 'Failed to create task' }, { status: 500 });

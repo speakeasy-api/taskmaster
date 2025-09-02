@@ -129,22 +129,6 @@ components:
           format: date-time
           description: When the relationship was last updated
           example: '2024-01-15T11:30:00Z'
-        relatedTask:
-          type: object
-          description: Information about the task that this task relates to
-          properties:
-            id:
-              type: string
-              format: uuid
-              example: '660f9500-f39c-52e5-b827-557766551111'
-            title:
-              type: string
-              example: 'Setup database schema'
-            description:
-              type: string
-              example: 'Create all necessary database tables and relationships'
-            status:
-              $ref: '#/components/schemas/TaskStatus'
       required:
         - id
         - task_id
@@ -534,11 +518,6 @@ paths:
                   created_by: 'user_123456'
                   created_at: '2024-01-15T11:30:00Z'
                   updated_at: '2024-01-15T11:30:00Z'
-                  relatedTask:
-                    id: '660f9500-f39c-52e5-b827-557766551111'
-                    title: 'Setup database schema'
-                    description: 'Create all necessary database tables and relationships'
-                    status: 'done'
         '400':
           description: Bad Request - Invalid task_id format or query parameters
           content:
@@ -629,11 +608,6 @@ paths:
                 created_by: 'user_123456'
                 created_at: '2024-01-15T11:30:00Z'
                 updated_at: '2024-01-15T11:30:00Z'
-                relatedTask:
-                  id: '660f9500-f39c-52e5-b827-557766551111'
-                  title: 'Setup database schema'
-                  description: 'Create all necessary database tables and relationships'
-                  status: 'done'
         '400':
           description: Bad Request - Invalid request data, self-referencing relationship, or invalid UUIDs
           content:
@@ -743,11 +717,6 @@ paths:
                 created_by: 'user_123456'
                 created_at: '2024-01-15T11:30:00Z'
                 updated_at: '2024-01-15T15:45:00Z'
-                relatedTask:
-                  id: '660f9500-f39c-52e5-b827-557766551111'
-                  title: 'Setup database schema'
-                  description: 'Create all necessary database tables and relationships'
-                  status: 'done'
         '400':
           description: Bad Request - Invalid request data or invalid UUIDs
           content:

@@ -21,10 +21,10 @@ const tsvector = customType<{ data: string }>({
 });
 
 const timestamps = {
-  created_at: timestamp({ withTimezone: true, mode: 'string' })
+  created_at: timestamp({ withTimezone: true, mode: 'date' })
     .default(sql`(now() AT TIME ZONE 'utc'::text)`)
     .notNull(),
-  updated_at: timestamp({ withTimezone: true, mode: 'string' })
+  updated_at: timestamp({ withTimezone: true, mode: 'date' })
     .default(sql`(now() AT TIME ZONE 'utc'::text)`)
     .notNull()
     .$onUpdate(() => sql`(now() AT TIME ZONE 'utc'::text)`)
