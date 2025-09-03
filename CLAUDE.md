@@ -80,6 +80,7 @@ Component.schemas.ts                  # Zod validation schemas
 ```
 
 This co-location pattern ensures that:
+
 - Related functionality stays together
 - Changes to components naturally include their remote functions
 - No need for centralized barrel exports

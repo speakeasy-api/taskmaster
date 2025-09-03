@@ -2,9 +2,7 @@
 title: Authorization Code Flow
 ---
 
-
 ## Overview
-
 
 The OAuth Authorization Code flow is the most secure way for web applications
 to authenticate users and access their data on their behalf. Unlike the client
@@ -52,7 +50,7 @@ Before you can use the authorization code flow, you need to register your applic
 Start the flow by redirecting users to Taskmaster's authorization endpoint:
 
 ```bash
-GET https://taskmaster-speakeasyapi.vercel.app/oauth2/authorize?
+GET https://taskmaster-speakeasyapi.vercel.app/api/auth/oauth2/authorize?
   response_type=code&
   client_id=<YOUR_CLIENT_ID>&
   redirect_uri=<YOUR_APP_REDIRECT_URI>&
@@ -108,12 +106,12 @@ Exchange the authorization code for access tokens by making a POST request to
 the token endpoint:
 
 ```bash
-curl -X POST https://taskmaster-speakeasyapi.vercel.app/oauth2/token \
-  -H "Content-Type: application/x-www-form-urlencoded" \
-  -H "Authorization: Basic $(echo -n 'your_client_id:your_client_secret' | base64)" \
-  -d "grant_type=authorization_code" \
-  -d "code=<AUTHORIZATION_CODE>" \
-  -d "redirect_uri=https://yourapp.com/auth/callback" \
+curl -X POST https://taskmaster-speakeasyapi.vercel.app/api/auth/oauth2/token \\
+  -H "Content-Type: application/x-www-form-urlencoded" \\
+  -H "Authorization: Basic $(echo -n 'your_client_id:your_client_secret' | base64)" \\
+  -d "grant_type=authorization_code" \\
+  -d "code=<AUTHORIZATION_CODE>" \\
+  -d "redirect_uri=https://yourapp.com/auth/callback" \\
   -d "code_verifier=<OPTIONAL_CODE_VERIFIER>"
 ```
 
@@ -147,7 +145,7 @@ curl -X POST https://taskmaster-speakeasyapi.vercel.app/oauth2/token \
 Make authenticated API requests using the access token:
 
 ```bash
-curl -X GET https://taskmaster-speakeasyapi.vercel.app/api/tasks \
+curl -X GET https://taskmaster-speakeasyapi.vercel.app/api/tasks \\
   -H "Authorization: Bearer your_access_token"
 ```
 
@@ -187,12 +185,10 @@ code_challenge=$(echo -n "$code_verifier" | openssl dgst -sha256 -binary | base6
 ```
 
 3. **Use in authorization request**:
-
    - `code_challenge`: The generated challenge
    - `code_challenge_method`: `S256`
 
 4. **Use verifier in token request**:
-
    - `code_verifier`: The original verifier string
 
 This returns a new access token.
@@ -248,7 +244,7 @@ OAuth application.
 
 ```json
 {
-  "error": "invalid_grant", 
+  "error": "invalid_grant",
   "error_description": "Invalid code verifier"
 }
 ```

@@ -8,10 +8,17 @@ declare global {
   namespace App {
     // interface Error {}
     interface Locals {
-      validateSession: () => Promise<GetSessionResponse>;
-
+      /** Log to server console (or any other logging system you set up) */
       log: (...args: unknown[]) => void;
+      /** Log an error to server console (or any other logging system you set up) */
       logError: (...args: unknown[]) => void;
+
+      /** Get a valid session cookie or redirect to login. */
+      validateSession: () => Promise<ValidateSessionResult>;
+
+      validateBearerToken: () => Promise<ValidateBearerTokenResult>;
+
+      getUserId: () => Promise<string>;
 
       /** Send a message to the client that will be displayed as a toast. */
       sendFlashMessage: (params: Omit<FlashMessage, 'createdAt'>) => void;
@@ -24,13 +31,23 @@ declare global {
     // interface PageData {}
     // interface PageState {}
     // interface Platform {}
+    //
+    interface Error {
+      message?: string;
+      errors?: unknown;
+    }
   }
 
-  type GetSessionResponse = {
+  type ValidateSessionResult = Readonly<{
     session: import('better-auth').Session;
     user: import('better-auth').User;
-  };
+    jwt: string;
+  }>;
+
   type FlashMessage = { title: string; description: string; createdAt: number };
+
+  // Utility types
+  type MaybePromise<T> = T | Promise<T>;
   type StoreValue<T> = T extends import('svelte/store').Readable<infer U> ? U : never;
 }
 

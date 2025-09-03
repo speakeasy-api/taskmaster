@@ -21,7 +21,7 @@
 </script>
 
 <svelte:head>
-  <title>{frontMatter.title} - Task Master API Docs</title>
+  <title>{frontMatter.title} - Taskmaster API Docs</title>
 </svelte:head>
 
 <article id="article-root" class="prose ml-4 dark:prose-invert">

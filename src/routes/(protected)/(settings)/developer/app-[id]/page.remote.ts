@@ -1,29 +1,34 @@
 import { form, getRequestEvent } from '$app/server';
-import { db } from '$lib/db';
-import { oauthApplication } from '$lib/db/schemas/auth';
-import { fail, redirect } from '@sveltejs/kit';
-import { and, eq } from 'drizzle-orm';
+import { oauthApplications } from '$lib/db/schemas/auth';
+import { validateForm } from '$lib/server/remote-fns';
+import { error, redirect } from '@sveltejs/kit';
+import { eq } from 'drizzle-orm';
 import { DeleteApplicationRequest } from './page.schemas';
-import { handleDatabaseError, validateForm } from '$lib/util.server';
 
 export const deleteApp = form(async (formData) => {
   const { locals } = getRequestEvent();
-  const { user } = await locals.validateSession();
 
   const validatedReq = validateForm(formData, DeleteApplicationRequest);
 
   if (!validatedReq.success) {
-    return fail(400, { message: 'Invalid request data' });
+    locals.sendFlashMessage({
+      title: 'Error',
+      description: 'There was an error with your request.'
+    });
+    error(400, 'Invalid request');
   }
 
   const { id } = validatedReq.data;
 
-  const result = await db
-    .delete(oauthApplication)
-    .where(and(eq(oauthApplication.userId, user.id), eq(oauthApplication.id, id)));
+  const result = await locals.db.delete(oauthApplications).where(eq(oauthApplications.id, id));
 
-  const error = handleDatabaseError(result.rowCount, 'OAuth application not found');
-  if (error) return error;
+  if (result.rowCount === 0) {
+    locals.sendFlashMessage({
+      title: 'Error',
+      description: 'Application not found or you do not have permission to delete it.'
+    });
+    error(404, 'Application not found');
+  }
 
   redirect(303, '/developer');
 });

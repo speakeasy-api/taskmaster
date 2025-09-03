@@ -22,12 +22,12 @@
 <main class="flex h-screen w-full items-center justify-center">
   <ActionCard
     title="App Consent"
-    subtitle="An application is requesting access to your Task Master Account. If you don't consent, you may close this window.">
+    subtitle="An application is requesting access to your Taskmaster Account. If you don't consent, you may close this window.">
     {#snippet body()}
       <div>
         <p class="text-sm">
           The application called <strong>&quot;{data.client.name}&quot;</strong>
-          is requesting access to your Task Master account. Please review the permissions it is requesting
+          is requesting access to your Taskmaster account. Please review the permissions it is requesting
           and confirm if you wish to proceed.
         </p>
         <p class="mt-4 mb-2">Requested Scopes:</p>

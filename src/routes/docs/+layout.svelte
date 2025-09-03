@@ -30,7 +30,7 @@
   <nav class="flex w-64 flex-col overflow-y-scroll p-2">
     <div class="flex-1 space-y-4">
       <header class="mb-3 p-2">
-        <p class="ml-2 h4">Task Master</p>
+        <p class="ml-2 h4">Taskmaster</p>
         <p class="ml-2 text-xs text-surface-500">Developer Docs</p>
       </header>
       <section class="p-2">

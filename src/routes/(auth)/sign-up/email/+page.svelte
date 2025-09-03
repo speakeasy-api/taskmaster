@@ -12,7 +12,7 @@
 </script>
 
 <svelte:head>
-  <title>Sign Up - Task Master</title>
+  <title>Sign Up - Taskmaster</title>
 </svelte:head>
 
 <h1 class="text-center text-2xl font-bold">Sign Up</h1>

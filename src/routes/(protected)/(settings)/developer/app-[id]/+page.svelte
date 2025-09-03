@@ -27,7 +27,7 @@
 </script>
 
 <svelte:head>
-  <title>{data.app.name ?? 'App'} - Task Master</title>
+  <title>{data.app.name ?? 'App'} - Taskmaster</title>
 </svelte:head>
 
 <div class="flex w-lg flex-col gap-6">
@@ -36,7 +36,7 @@
       <ol class="mb-4 flex items-center gap-4 text-xs">
         <li><a class="opacity-60 hover:underline" href="/developer">Developer Dashboard</a></li>
         <li class="opacity-50" aria-hidden={true}>&rsaquo;</li>
-        <li>Article</li>
+        <li>OAuth Application</li>
       </ol>
       <p class="h2 capitalize">{data.app.name ?? 'Unnamed App'}</p>
       <p class="mt-1 text-xs text-surface-500">

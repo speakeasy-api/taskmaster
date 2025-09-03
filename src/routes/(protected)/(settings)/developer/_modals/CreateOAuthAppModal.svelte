@@ -93,13 +93,14 @@
         </TextInput>
 
         <TextInput
-          label="Redirect URL (Optional)"
+          label="Redirect URL"
           placeholder="https://example.com/callback"
           name="redirectUrl"
           status={$errors.redirectUrl ? 'error' : undefined}
           bind:value={$form.redirectUrl}
           disabled={$submitting}
-          autocomplete="off">
+          autocomplete="off"
+          required>
           {#snippet error()}
             <span class="mt-1 text-sm text-error-600">{$errors.redirectUrl}</span>
           {/snippet}

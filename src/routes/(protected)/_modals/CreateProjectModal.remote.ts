@@ -2,7 +2,7 @@ import { command, getRequestEvent } from '$app/server';
 import { CreateProjectRequest } from './CreateProjectModal.schemas';
 
 export const createProject = command(CreateProjectRequest, async (request) => {
-  const { user } = await getRequestEvent().locals.validateSession();
+  const { locals } = getRequestEvent();
 
   const result = await locals.services.projects.create({
     ...request,

@@ -35,7 +35,7 @@
 </script>
 
 <svelte:head>
-  <title>Sign In - Task Master</title>
+  <title>Sign In - Taskmaster</title>
 </svelte:head>
 
 <h1 class="text-center text-2xl font-bold">Sign In</h1>

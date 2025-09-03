@@ -1,0 +1,5 @@
+ALTER TABLE "oauth_applications" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
+CREATE POLICY "crud-authenticated-policy-delete" ON "oauth_applications" AS PERMISSIVE FOR DELETE TO "authenticated" USING ((select auth.user_id() = "oauth_applications"."user_id"));--> statement-breakpoint
+CREATE POLICY "crud-authenticated-policy-insert" ON "oauth_applications" AS PERMISSIVE FOR INSERT TO "authenticated" WITH CHECK ((select auth.user_id() = "oauth_applications"."user_id"));--> statement-breakpoint
+CREATE POLICY "crud-authenticated-policy-select" ON "oauth_applications" AS PERMISSIVE FOR SELECT TO "authenticated" USING ((select auth.user_id() = "oauth_applications"."user_id"));--> statement-breakpoint
+CREATE POLICY "crud-authenticated-policy-update" ON "oauth_applications" AS PERMISSIVE FOR UPDATE TO "authenticated" USING ((select auth.user_id() = "oauth_applications"."user_id")) WITH CHECK ((select auth.user_id() = "oauth_applications"."user_id"));

@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
-  title: Task Master API
-  description: API for managing user tasks with OAuth authentication in Task Master
+  title: Taskmaster API
+  description: API for managing user tasks with OAuth authentication in Taskmaster
   version: 1.0.0
   contact:
     name: API Support
@@ -9,10 +9,8 @@ info:
     name: MIT
 
 servers:
-  - url: https://mcp-auth-demo.vercel.app/api
+  - url: https://taskmaster-speakeasyapi.vercel.app/api
     description: Deployed server
-  - url: http://localhost:5173/api
-    description: Local development server
 
 security:
   - oauthToken: []
@@ -23,8 +21,8 @@ components:
       type: oauth2
       flows:
         authorizationCode:
-          authorizationUrl: https://mcp-auth-demo.vercel.app/api/oauth2/authorize
-          tokenUrl: /oauth2/token
+          authorizationUrl: /api/oauth2/authorize
+          tokenUrl: /api/oauth2/token
           scopes:
             - openid
             - profile
@@ -42,6 +40,15 @@ components:
         - canceled
       description: Current status of the task
       example: 'todo'
+
+    RelationshipType:
+      type: string
+      enum:
+        - blocks
+        - relates_to
+        - duplicates
+      description: Defines how one task relates to another.
+      example: 'blocks'
 
     Task:
       type: object
@@ -86,6 +93,47 @@ components:
         - id
         - title
         - description
+        - created_by
+
+    TaskRelationship:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier for the task relationship
+          example: '780f9600-f39c-52e5-b827-557766551122'
+        task_id:
+          type: string
+          format: uuid
+          description: ID of the task that has the relationship
+          example: '550e8400-e29b-41d4-a716-446655440000'
+        relates_to_task_id:
+          type: string
+          format: uuid
+          description: ID of the task that this task relates to
+          example: '660f9500-f39c-52e5-b827-557766551111'
+        relationship_type:
+          $ref: '#/components/schemas/RelationshipType'
+        created_by:
+          type: string
+          description: ID of the user who created this relationship
+          example: 'user_123456'
+        created_at:
+          type: string
+          format: date-time
+          description: When the relationship was created
+          example: '2024-01-15T11:30:00Z'
+        updated_at:
+          type: string
+          format: date-time
+          description: When the relationship was last updated
+          example: '2024-01-15T11:30:00Z'
+      required:
+        - id
+        - task_id
+        - relates_to_task_id
+        - relationship_type
         - created_by
 
     Project:
@@ -142,7 +190,7 @@ paths:
     post:
       operationId: createTask
       summary: Create a new task
-      description: Creates a new task for the authenticated user in Task Master
+      description: Creates a new task for the authenticated user in Taskmaster
       security:
         - oauthToken: []
       requestBody:
@@ -240,7 +288,7 @@ paths:
     get:
       operationId: getTasks
       summary: Get all tasks for authenticated user
-      description: Retrieves all tasks belonging to the authenticated user in Task Master. Optionally filter by project.
+      description: Retrieves all tasks belonging to the authenticated user in Taskmaster. Optionally filter by project.
       security:
         - oauthToken: []
       parameters:
@@ -272,7 +320,7 @@ paths:
                   updated_at: '2024-01-15T10:30:00Z'
                 - id: '660f9500-f39c-52e5-b827-557766551111'
                   title: 'Write comprehensive tests'
-                  description: 'Add test coverage for all Task Master endpoints'
+                  description: 'Add test coverage for all Taskmaster endpoints'
                   created_by: 'user_123456'
                   project_id: '6ba7b810-9dad-11d1-80b4-00c04fd430c8'
                   status: 'in_progress'
@@ -297,7 +345,7 @@ paths:
     put:
       operationId: updateTask
       summary: Update a specific task
-      description: Updates a task by ID for the authenticated user in Task Master. All fields are optional for partial updates.
+      description: Updates a task by ID for the authenticated user in Taskmaster. All fields are optional for partial updates.
       security:
         - oauthToken: []
       parameters:
@@ -394,7 +442,7 @@ paths:
     delete:
       operationId: deleteTask
       summary: Delete a specific task
-      description: Deletes a task by ID for the authenticated user in Task Master
+      description: Deletes a task by ID for the authenticated user in Taskmaster
       security:
         - oauthToken: []
       parameters:
@@ -431,11 +479,349 @@ paths:
                 type: string
                 example: 'Not Found'
 
+  /tasks/{task_id}/relationships:
+    get:
+      operationId: getTaskRelationships
+      summary: Get all relationships for a specific task
+      description: Retrieves all relationships for a specific task belonging to the authenticated user in Taskmaster. Optionally filter by relationship type.
+      security:
+        - oauthToken: []
+      parameters:
+        - name: task_id
+          in: path
+          required: true
+          description: The UUID of the task to get dependencies for
+          schema:
+            type: string
+            format: uuid
+            example: '550e8400-e29b-41d4-a716-446655440000'
+        - name: relationship_type
+          in: query
+          required: false
+          description: Filter relationships by type
+          schema:
+            $ref: '#/components/schemas/RelationshipType'
+      responses:
+        '200':
+          description: Successfully retrieved task relationships
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TaskRelationship'
+              example:
+                - id: '780f9600-f39c-52e5-b827-557766551122'
+                  task_id: '550e8400-e29b-41d4-a716-446655440000'
+                  relates_to_task_id: '660f9500-f39c-52e5-b827-557766551111'
+                  relationship_type: 'blocks'
+                  created_by: 'user_123456'
+                  created_at: '2024-01-15T11:30:00Z'
+                  updated_at: '2024-01-15T11:30:00Z'
+        '400':
+          description: Bad Request - Invalid task_id format or query parameters
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'task_id must be a valid UUID'
+        '401':
+          description: Unauthorized - Invalid or missing authentication token
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: 'Unauthorized'
+        '404':
+          description: Task not found or not owned by authenticated user
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: 'Not Found'
+    post:
+      operationId: createTaskRelationship
+      summary: Create a new task relationship
+      description: >
+        Creates a new relationship between two tasks for the authenticated user
+        in Taskmaster. The `type` defines the what `task_id` does to
+        `target_task_id`. For example, if `relationship_type` is `blocks`, then
+        `task_id` blocks `target_task_id`, and `target_task_id` is blocked by
+        `task_id`.
+      security:
+        - oauthToken: []
+      parameters:
+        - name: task_id
+          in: path
+          required: true
+          description: The UUID of the task from which the relationship
+            originates. If `type` is the verb, then `task_id` is the actor, and
+            `target_task_id` is the subject.
+          schema:
+            type: string
+            format: uuid
+            example: '550e8400-e29b-41d4-a716-446655440000'
+      requestBody:
+        description: Task relationship data for creation
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                type:
+                  $ref: '#/components/schemas/RelationshipType'
+                target_task_id:
+                  type: string
+                  format: uuid
+                  description: ID of the task that is affected by this relationship
+                  example: '660f9500-f39c-52e5-b827-557766551111'
+              required:
+                - target_task_id
+                - type
+            examples:
+              blocks_relationship:
+                summary: Create blocking relationship
+                value:
+                  target_task_id: '660f9500-f39c-52e5-b827-557766551111'
+                  type: 'blocks'
+              relates_to_relationship:
+                summary: Create related relationship
+                value:
+                  target_task_id: '770g0600-g40d-63f6-c938-668877773333'
+                  type: 'relates_to'
+      responses:
+        '201':
+          description: Task relationship successfully created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskRelationship'
+              example:
+                id: '780f9600-f39c-52e5-b827-557766551122'
+                task_id: '550e8400-e29b-41d4-a716-446655440000'
+                relates_to_task_id: '660f9500-f39c-52e5-b827-557766551111'
+                relationship_type: 'blocks'
+                created_by: 'user_123456'
+                created_at: '2024-01-15T11:30:00Z'
+                updated_at: '2024-01-15T11:30:00Z'
+        '400':
+          description: Bad Request - Invalid request data, self-referencing relationship, or invalid UUIDs
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'A task cannot relate to itself'
+                  errors:
+                    type: object
+                    description: Field-specific validation errors
+                    example:
+                      relates_to_task_id: ['relates_to_task_id must be a valid UUID']
+        '401':
+          description: Unauthorized - Invalid or missing authentication token
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: 'Unauthorized'
+        '404':
+          description: One or both tasks not found or not owned by user
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'One or both tasks not found or not owned by user'
+        '409':
+          description: Conflict - Dependency already exists between these tasks
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Relationship already exists between these tasks'
+        '500':
+          description: Internal Server Error - Failed to create task relationship
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Failed to create task relationship'
+
+  /tasks/{task_id}/relationships/{relationship_id}:
+    put:
+      operationId: updateTaskRelationship
+      summary: Update a specific task relationship
+      description: Updates the relationship type for a specific task relationship belonging to the authenticated user in Taskmaster
+      security:
+        - oauthToken: []
+      parameters:
+        - name: task_id
+          in: path
+          required: true
+          description: The UUID of the task that has the relationship
+          schema:
+            type: string
+            format: uuid
+            example: '550e8400-e29b-41d4-a716-446655440000'
+        - name: relationship_id
+          in: path
+          required: true
+          description: The UUID of the relationship to update
+          schema:
+            type: string
+            format: uuid
+            example: '780f9600-f39c-52e5-b827-557766551122'
+      requestBody:
+        description: Task relationship fields to update
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                relationship_type:
+                  $ref: '#/components/schemas/RelationshipType'
+              required:
+                - relationship_type
+            examples:
+              change_to_relates:
+                summary: Change relationship type to relates_to
+                value:
+                  relationship_type: 'relates_to'
+      responses:
+        '200':
+          description: Task relationship successfully updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskRelationship'
+              example:
+                id: '780f9600-f39c-52e5-b827-557766551122'
+                task_id: '550e8400-e29b-41d4-a716-446655440000'
+                relates_to_task_id: '660f9500-f39c-52e5-b827-557766551111'
+                relationship_type: 'relates_to'
+                created_by: 'user_123456'
+                created_at: '2024-01-15T11:30:00Z'
+                updated_at: '2024-01-15T15:45:00Z'
+        '400':
+          description: Bad Request - Invalid request data or invalid UUIDs
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Invalid request data'
+                  errors:
+                    type: object
+                    description: Field-specific validation errors
+                    example:
+                      relationship_type: ['relationship_type must be one of: blocks, relates_to, duplicates']
+        '401':
+          description: Unauthorized - Invalid or missing authentication token
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: 'Unauthorized'
+        '404':
+          description: Task or relationship not found or not owned by authenticated user
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: 'Not Found'
+        '500':
+          description: Internal Server Error - Failed to update task relationship
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Failed to update task relationship'
+    delete:
+      operationId: deleteTaskRelationship
+      summary: Delete a specific task relationship
+      description: Deletes a specific task relationship belonging to the authenticated user in Taskmaster
+      security:
+        - oauthToken: []
+      parameters:
+        - name: task_id
+          in: path
+          required: true
+          description: The UUID of the task that has the relationship
+          schema:
+            type: string
+            format: uuid
+            example: '550e8400-e29b-41d4-a716-446655440000'
+        - name: relationship_id
+          in: path
+          required: true
+          description: The UUID of the relationship to delete
+          schema:
+            type: string
+            format: uuid
+            example: '780f9600-f39c-52e5-b827-557766551122'
+      responses:
+        '204':
+          description: Task relationship successfully deleted
+        '400':
+          description: Bad Request - Invalid UUIDs
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'task_id and relationship_id must be valid UUIDs'
+        '401':
+          description: Unauthorized - Invalid or missing authentication token
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: 'Unauthorized'
+        '404':
+          description: Task or relationship not found or not owned by authenticated user
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: 'Not Found'
+        '500':
+          description: Internal Server Error - Failed to delete task relationship
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Failed to delete task relationship'
+
   /projects:
     post:
       operationId: createProject
       summary: Create a new project
-      description: Creates a new project for the authenticated user in Task Master
+      description: Creates a new project for the authenticated user in Taskmaster
       security:
         - oauthToken: []
       requestBody:
@@ -466,7 +852,7 @@ paths:
                 summary: Basic project creation
                 value:
                   name: 'Mobile App Development'
-                  description: 'Build a cross-platform mobile application for Task Master'
+                  description: 'Build a cross-platform mobile application for Taskmaster'
       responses:
         '201':
           description: Project successfully created
@@ -517,7 +903,7 @@ paths:
     get:
       operationId: getProjects
       summary: Get all projects for authenticated user
-      description: Retrieves all projects belonging to the authenticated user in Task Master
+      description: Retrieves all projects belonging to the authenticated user in Taskmaster
       security:
         - oauthToken: []
       responses:
@@ -538,7 +924,7 @@ paths:
                   updated_at: '2024-01-15T09:00:00Z'
                 - id: '7cb8c920-aeac-22f2-91c5-668877662222'
                   name: 'Mobile App Development'
-                  description: 'Build a cross-platform mobile application for Task Master'
+                  description: 'Build a cross-platform mobile application for Taskmaster'
                   created_by: 'user_123456'
                   created_at: '2024-01-15T10:00:00Z'
                   updated_at: '2024-01-15T11:30:00Z'
@@ -561,7 +947,7 @@ paths:
     delete:
       operationId: deleteProject
       summary: Delete a specific project
-      description: Deletes a project by ID for the authenticated user in Task Master. Associated tasks will be automatically deleted due to cascade delete.
+      description: Deletes a project by ID for the authenticated user in Taskmaster. Associated tasks will be automatically deleted due to cascade delete.
       security:
         - oauthToken: []
       parameters:
@@ -600,6 +986,6 @@ paths:
 
 tags:
   - name: tasks
-    description: Operations related to task management in Task Master
+    description: Operations related to task management in Taskmaster
   - name: projects
-    description: Operations related to project management in Task Master
+    description: Operations related to project management in Taskmaster

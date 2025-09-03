@@ -2,7 +2,6 @@
 title: Client Credentials Flow
 ---
 
-
 ## Overview
 
 The OAuth Client Credentials flow is a way for applications to authenticate
@@ -50,9 +49,9 @@ To get an access token, make a POST request to the token endpoint with your
 client credentials:
 
 ```bash
-curl -X POST https://taskmaster-speakeasyapi.vercel.app/oauth2/token \
-  -H "Content-Type: application/x-www-form-urlencoded" \
-  -H "Authorization: Basic $(echo -n 'your_client_id:your_client_secret' | base64)" \
+curl -X POST https://taskmaster-speakeasyapi.vercel.app/api/auth/oauth2/token \\
+  -H "Content-Type: application/x-www-form-urlencoded" \\
+  -H "Authorization: Basic $(echo -n 'your_client_id:your_client_secret' | base64)" \\
   -d "grant_type=client_credentials"
 ```
 
@@ -89,7 +88,7 @@ If everything is correct, you'll get a response like this:
 Now you can make authenticated API requests! Here's how to fetch your tasks:
 
 ```bash
-curl -X GET https://taskmaster-speakeasyapi.vercel.app/api/tasks \
+curl -X GET https://taskmaster-speakeasyapi.vercel.app/api/tasks \\
   -H "Authorization: Bearer your_access_token"
 ```
 
