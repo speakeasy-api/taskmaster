@@ -1,5 +1,6 @@
 import { building } from '$app/environment';
 import { auth } from '$lib/auth';
+import { db as adminDb } from '$lib/db';
 import {
   createAuthenticatedDb,
   createBearerTokenValidator,
@@ -28,7 +29,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 
     event.locals.db = createAuthenticatedDb(authType);
     event.locals.getUserId = createUserIdGetter(authType);
-    event.locals.services = new ServiceContainer(event.locals.db);
+    event.locals.services = new ServiceContainer(event.locals.db, adminDb);
   }
 
   return svelteKitHandler({ event, resolve, auth, building });
