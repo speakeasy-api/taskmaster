@@ -3,13 +3,14 @@
   import { Popover } from '@skeletonlabs/skeleton-svelte';
   import { authClient } from '$lib/auth-client';
   import { goto } from '$app/navigation';
+  import { resolve } from '$app/paths';
 
   let { user } = $props<{ user: { name: string; email: string } }>();
 
   async function handleSignOut() {
     try {
       await authClient.signOut();
-      goto('/sign-in');
+      goto(resolve('/sign-in'));
     } catch (error) {
       console.error('Sign out failed:', error);
     }

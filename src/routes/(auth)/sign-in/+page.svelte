@@ -6,6 +6,7 @@
   import { goto } from '$app/navigation';
   import TextInput from '$lib/ui/inputs/TextInput.svelte';
   import PasswordInput from '$lib/ui/inputs/PasswordInput.svelte';
+  import { resolve } from '$app/paths';
 
   const { form, errors, enhance, submitting, message } = superForm(defaults(zod(SignInSchema)), {
     validators: zod(SignInSchema),
@@ -20,7 +21,7 @@
       });
 
       if (data) {
-        await goto('/projects');
+        await goto(resolve('/projects'));
         return;
       }
 
@@ -79,7 +80,7 @@
   <div class="text-center">
     <p class="text-sm text-gray-600">
       Don't have an account?
-      <a href="/sign-up/email" class="underline hover:text-primary-600">Sign up</a>
+      <a href={resolve('/sign-up')} class="underline hover:text-primary-600">Sign up</a>
     </p>
   </div>
 </form>

@@ -80,7 +80,7 @@
           {#each depGroup.items as dependency (dependency.id)}
             <li class="">
               <a
-                href={dependency.href}
+                href={resolve('/(protected)/projects/task/[task_id]', { task_id: dependency.id })}
                 class="group flex items-center justify-between card preset-outlined-surface-200-800 p-0 pl-2 text-xs font-semibold hover:underline">
                 {dependency.title}
                 <RelationDropdownMenu

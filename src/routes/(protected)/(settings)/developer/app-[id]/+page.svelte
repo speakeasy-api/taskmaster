@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { resolve } from '$app/paths';
   import TextInput from '$lib/ui/inputs/TextInput.svelte';
   import type { PageProps } from './$types';
   import { deleteApp } from './page.remote';
@@ -34,7 +35,9 @@
   <header class="space-y-2">
     <div>
       <ol class="mb-4 flex items-center gap-4 text-xs">
-        <li><a class="opacity-60 hover:underline" href="/developer">Developer Dashboard</a></li>
+        <li>
+          <a class="opacity-60 hover:underline" href={resolve('/developer')}>Developer Dashboard</a>
+        </li>
         <li class="opacity-50" aria-hidden={true}>&rsaquo;</li>
         <li>OAuth Application</li>
       </ol>
