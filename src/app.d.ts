@@ -1,3 +1,7 @@
+import type { ValidateBearerTokenResult } from '$lib/server/event-utilities';
+import type { AuthenticatedDbClient } from '$lib/server/event-utilities/db';
+import type { ServiceContainer } from '$lib/server/services';
+
 // See https://svelte.dev/docs/kit/types#app.d.ts
 // for information about these interfaces
 declare global {
@@ -11,6 +15,11 @@ declare global {
 
       /** Send a message to the client that will be displayed as a toast. */
       sendFlashMessage: (params: Omit<FlashMessage, 'createdAt'>) => void;
+
+      /** Database connection that includes the JWT for the current user (if any) */
+      db: AuthenticatedDbClient;
+
+      services: ServiceContainer;
     }
     // interface PageData {}
     // interface PageState {}

@@ -1,6 +1,17 @@
 import { building } from '$app/environment';
 import { auth } from '$lib/auth';
-import { error, type Handle } from '@sveltejs/kit';
+import {
+  createAuthenticatedDb,
+  createBearerTokenValidator,
+  createSessionValidator,
+  createUserIdGetter,
+  getAuthTypeForRoute,
+  log,
+  logError,
+  sendFlashMessage
+} from '$lib/server/event-utilities';
+import { ServiceContainer } from '$lib/server/services';
+import { type Handle } from '@sveltejs/kit';
 import { svelteKitHandler } from 'better-auth/svelte-kit';
 import { randomBytes } from 'crypto';
 
@@ -16,12 +27,9 @@ export const handle: Handle = async ({ event, resolve }) => {
       error(401, 'Unauthorized');
     }
 
-    validatedSession = session;
-    return session;
-  };
-
-  if (event.route.id?.startsWith('/(protected)')) {
-    await event.locals.validateSession();
+    event.locals.db = createAuthenticatedDb(authType);
+    event.locals.getUserId = createUserIdGetter(authType);
+    event.locals.services = new ServiceContainer(event.locals.db);
   }
 
   event.locals.log = (...args: unknown[]) => {
