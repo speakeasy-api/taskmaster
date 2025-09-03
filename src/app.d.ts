@@ -18,6 +18,8 @@ declare global {
 
       validateBearerToken: () => Promise<ValidateBearerTokenResult>;
 
+      validateApiKey: () => Promise<ValidateSessionResult>;
+
       getUserId: () => Promise<string>;
 
       /** Send a message to the client that will be displayed as a toast. */

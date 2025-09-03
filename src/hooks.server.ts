@@ -2,6 +2,7 @@ import { building } from '$app/environment';
 import { auth } from '$lib/auth';
 import { db as adminDb } from '$lib/db';
 import {
+  createApiKeyValidator,
   createAuthenticatedDb,
   createBearerTokenValidator,
   createSessionValidator,
@@ -21,11 +22,13 @@ export const handle: Handle = async ({ event, resolve }) => {
   event.locals.sendFlashMessage = sendFlashMessage;
   event.locals.validateSession = createSessionValidator();
   event.locals.validateBearerToken = createBearerTokenValidator();
+  event.locals.validateApiKey = createApiKeyValidator();
 
   const authType = getAuthTypeForRoute();
   if (authType !== 'none') {
     if (authType === 'session') await event.locals.validateSession();
     else if (authType === 'bearer') await event.locals.validateBearerToken();
+    else if (authType === 'apiKey') await event.locals.validateApiKey();
 
     event.locals.db = createAuthenticatedDb(authType);
     event.locals.getUserId = createUserIdGetter(authType);

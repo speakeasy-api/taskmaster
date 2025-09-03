@@ -21,7 +21,7 @@ export class ProjectNotFoundError extends Error implements TaggedError {
  * and thus subject to PG RLS policies.
  */
 export default class ProjectService {
-  constructor(private db: AuthenticatedDbClient) {}
+  constructor(private dbClient: AuthenticatedDbClient) {}
 
   /** Create a new project */
   create = (params: {
@@ -30,7 +30,7 @@ export default class ProjectService {
     created_by?: string;
   }): ResultAsync<typeof projects.$inferSelect, DatabaseError> =>
     ResultAsync.fromPromise(
-      this.db
+      this.dbClient
         .insert(projects)
         .values(params)
         .returning()
@@ -46,7 +46,7 @@ export default class ProjectService {
     search?: string;
   }): ResultAsync<(typeof projects.$inferSelect)[], DatabaseError> =>
     ResultAsync.fromPromise(
-      this.db.query.projects.findMany({
+      this.dbClient.query.projects.findMany({
         where: and(
           params.created_by ? eq(projects.created_by, params.created_by) : undefined,
           params.search ? ilike(projects.name, `%${params.search}%`) : undefined
@@ -63,7 +63,7 @@ export default class ProjectService {
     created_by?: string;
   }): ResultAsync<void, ProjectNotFoundError | DatabaseError> =>
     ResultAsync.fromPromise(
-      this.db
+      this.dbClient
         .delete(projects)
         .where(
           and(

@@ -131,3 +131,41 @@ export const createBearerTokenValidator = (): (() => Promise<ValidateBearerToken
     return validatedToken;
   };
 };
+
+export const createApiKeyValidator = (): (() => Promise<ValidateSessionResult>) => {
+  const { request, locals } = getRequestEvent();
+  let validatedSession: ValidateSessionResult | null = null;
+
+  return async () => {
+    if (validatedSession) return validatedSession;
+
+    const apiKey = request.headers.get('x-api-key');
+    if (!apiKey) {
+      error(401, { message: 'API key missing' });
+    }
+
+    const sessionResponse = await auth.api.getSession({
+      headers: request.headers,
+      asResponse: true
+    });
+
+    if (sessionResponse.status !== 200) {
+      error(401, { message: `Invalid API key` });
+    }
+
+    const sessionJson: ValidateSessionResult | null = await sessionResponse.json();
+    const setJwtHeader: string | null = sessionResponse.headers.get('set-auth-jwt');
+
+    if (!sessionJson || !setJwtHeader) {
+      locals.logError('API key is valid but session data or JWT is missing');
+      error(401, { message: 'Invalid API key session data' });
+    }
+
+    validatedSession = {
+      ...sessionJson,
+      jwt: sessionResponse.headers.get('set-auth-jwt')!
+    };
+
+    return validatedSession;
+  };
+};
