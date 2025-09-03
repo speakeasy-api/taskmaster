@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { resolve } from '$app/paths';
   import type { PageProps } from './$types';
   import CreateOAuthAppModal from './_modals/CreateOAuthAppModal.svelte';
   import PlusIcon from '@lucide/svelte/icons/plus';
@@ -43,9 +44,10 @@
     {#if data.apps.length > 0}
       <ul class="space-y-4">
         {#each data.apps as app (app.id)}
+          {@const href = resolve('/(protected)/(settings)/developer/app-[id]', { id: app.id })}
           <li>
             <a
-              href="/developer/app-{app.id}"
+              {href}
               class="flex justify-between gap-4 card preset-outlined-surface-200-800 p-4 hover:preset-tonal">
               <div class="flex flex-col gap-1">
                 <p class="text-lg font-semibold">{app.name}</p>

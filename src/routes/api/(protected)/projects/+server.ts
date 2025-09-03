@@ -1,17 +1,23 @@
-import { projects } from '$lib/db/schemas/schema.js';
 import { validateRequest } from '$lib/server/event-utilities/validation.js';
 import { json } from '@sveltejs/kit';
 import z from 'zod';
 import type { RequestHandler } from './$types.js';
 
 export const GET: RequestHandler = async ({ locals }) => {
-  const userId = await locals.getUserId();
+  const result = await locals.services.projects.list({ created_by: await locals.getUserId() });
 
-  const result = await locals.db.query.projects.findMany({
-    where: (table, { eq }) => eq(table.created_by, userId)
-  });
+  if (result.isOk()) {
+    return json(result.value);
+  }
 
-  return json(result);
+  switch (result.error._tag) {
+    case 'DatabaseError':
+      locals.logError('Database error fetching projects', result.error);
+      return json(
+        { message: 'There was a database error fetching the projects.' },
+        { status: 500 }
+      );
+  }
 };
 
 const CreateProjectSchema = z.object({
@@ -29,17 +35,22 @@ export const POST: RequestHandler = async ({ locals }) => {
 
   const { name, description } = body;
 
-  const insertResult = await locals.db
-    .insert(projects)
-    .values({
-      name,
-      description
-    })
-    .returning();
+  const result = await locals.services.projects.create({
+    name,
+    description,
+    created_by: await locals.getUserId()
+  });
 
-  if (insertResult.length === 0) {
-    return json({ message: 'Failed to create project' }, { status: 500 });
+  if (result.isOk()) return json(result.value, { status: 201 });
+
+  switch (result.error._tag) {
+    case 'DatabaseError':
+      locals.logError('Database error creating project', result.error);
+      return json(
+        {
+          message: 'There was a database error creating the project.'
+        },
+        { status: 500 }
+      );
   }
-
-  return json(insertResult[0], { status: 201 });
 };

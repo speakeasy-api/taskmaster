@@ -1,5 +1,6 @@
 import { building } from '$app/environment';
 import { auth } from '$lib/auth';
+import { db as adminDb } from '$lib/db';
 import {
   createAuthenticatedDb,
   createBearerTokenValidator,
@@ -10,6 +11,7 @@ import {
   logError,
   sendFlashMessage
 } from '$lib/server/event-utilities';
+import { ServiceContainer } from '$lib/server/services';
 import { type Handle } from '@sveltejs/kit';
 import { svelteKitHandler } from 'better-auth/svelte-kit';
 
@@ -27,6 +29,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 
     event.locals.db = createAuthenticatedDb(authType);
     event.locals.getUserId = createUserIdGetter(authType);
+    event.locals.services = new ServiceContainer(event.locals.db, adminDb);
   }
 
   return svelteKitHandler({ event, resolve, auth, building });

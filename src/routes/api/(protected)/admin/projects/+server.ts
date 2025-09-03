@@ -1,10 +1,10 @@
-import { json } from '@sveltejs/kit';
-import type { RequestHandler } from './$types.js';
 import { db } from '$lib/db/index.js';
-import { z } from 'zod';
-import { validateRequest } from '$lib/server/event-utilities/validation.js';
 import { users } from '$lib/db/schemas/auth.js';
-import { eq, and } from 'drizzle-orm';
+import { validateRequest } from '$lib/server/event-utilities/validation.js';
+import { json } from '@sveltejs/kit';
+import { eq } from 'drizzle-orm';
+import { z } from 'zod';
+import type { RequestHandler } from './$types.js';
 
 export const GET: RequestHandler = async ({ locals }) => {
   const userId = await locals.getUserId();
@@ -22,13 +22,19 @@ export const GET: RequestHandler = async ({ locals }) => {
     return new Response('Forbidden', { status: 403 });
   }
 
-  const result = await db.query.projects.findMany({
-    where: (table, { ilike }) =>
-      and(
-        search ? ilike(table.name, `%${search}%`) : undefined,
-        user_id ? eq(table.created_by, user_id) : undefined
-      )
+  const result = await locals.services.adminProjects.list({
+    created_by: user_id,
+    search
   });
 
-  return json(result);
+  if (result.isOk()) return json(result.value);
+
+  switch (result.error._tag) {
+    case 'DatabaseError':
+      locals.logError('Database error fetching projects', result.error);
+      return json(
+        { message: 'There was a database error fetching the projects.' },
+        { status: 500 }
+      );
+  }
 };

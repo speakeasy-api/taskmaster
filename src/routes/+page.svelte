@@ -1,3 +1,7 @@
+<script>
+  import { resolve } from '$app/paths';
+</script>
+
 <svelte:head>
   <title>Taskmaster</title>
 </svelte:head>
@@ -7,8 +11,8 @@
     <h1 class="h1">Taskmaster</h1>
     <p class="max-w-md text-surface-500">A simple task management app.</p>
     <div class="flex gap-x-4">
-      <a href="/sign-in" class="btn preset-filled">Sign In</a>
-      <a href="/docs" class="btn preset-tonal">Docs</a>
+      <a href={resolve('/sign-in')} class="btn preset-filled">Sign In</a>
+      <a href={resolve('/docs')} class="btn preset-tonal">Docs</a>
     </div>
   </header>
 </div>

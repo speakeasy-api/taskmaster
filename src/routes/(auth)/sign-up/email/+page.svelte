@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { resolve } from '$app/paths';
   import PasswordInput from '$lib/ui/inputs/PasswordInput.svelte';
   import TextInput from '$lib/ui/inputs/TextInput.svelte';
   import { defaults, superForm } from 'sveltekit-superforms';
@@ -80,7 +81,7 @@
   <div class="text-center">
     <p class="text-sm text-gray-600">
       Already have an account?
-      <a href="/sign-in" class="underline hover:text-primary-600">Sign in</a>
+      <a href={resolve('/sign-in')} class="underline hover:text-primary-600">Sign in</a>
     </p>
   </div>
 </form>
