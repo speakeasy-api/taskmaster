@@ -984,8 +984,84 @@ paths:
                 type: string
                 example: 'Not Found'
 
+  /admin/projects:
+    get:
+      operationId: getAdminProjects
+      summary: Get all projects (admin only)
+      description: Retrieves all projects in the system with optional filtering. Only available to users with @speakeasy.com email domain.
+      security:
+        - oauthToken: []
+      parameters:
+        - name: search
+          in: query
+          required: false
+          description: Filter projects by name (case-insensitive partial match)
+          schema:
+            type: string
+            example: 'website'
+        - name: user_id
+          in: query
+          required: false
+          description: Filter projects by the user who created them
+          schema:
+            type: string
+            example: 'XBh42Mcstpacyo1qMz89t3T47NuBLYp6'
+      responses:
+        '200':
+          description: Successfully retrieved projects
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Project'
+              example:
+                - id: '6ba7b810-9dad-11d1-80b4-00c04fd430c8'
+                  name: 'Website Redesign'
+                  description: 'Complete redesign of the company website with modern UI/UX'
+                  created_by: 'XBh42Mcstpacyo1qMz89t3T47NuBLYp6'
+                  created_at: '2024-01-15T09:00:00Z'
+                  updated_at: '2024-01-15T09:00:00Z'
+                - id: '7cb8c920-aeac-22f2-91c5-668877662222'
+                  name: 'Mobile App Development'
+                  description: 'Build a cross-platform mobile application for Taskmaster'
+                  created_by: 'YCi53Ndtuqbdzp2rNa01u4U58OvCMZq7'
+                  created_at: '2024-01-15T10:00:00Z'
+                  updated_at: '2024-01-15T11:30:00Z'
+        '400':
+          description: Bad Request - Invalid query parameters
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Invalid query parameters'
+                  errors:
+                    type: object
+                    description: Field-specific validation errors
+                    example:
+                      search: ['Search parameter must be a string']
+        '401':
+          description: Unauthorized - Invalid or missing authentication token
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: 'Unauthorized'
+        '403':
+          description: Forbidden - User does not have admin privileges
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: 'Forbidden'
+
 tags:
   - name: tasks
     description: Operations related to task management in Taskmaster
   - name: projects
     description: Operations related to project management in Taskmaster
+  - name: admin
+    description: Administrative operations (restricted to @speakeasy.com users)
