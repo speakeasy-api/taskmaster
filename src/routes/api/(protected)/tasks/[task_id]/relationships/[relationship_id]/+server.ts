@@ -18,13 +18,21 @@ export const PUT: RequestHandler = async ({ locals }) => {
 
   // Update the relationship
   const userId = await locals.session.getUserId();
+  if (userId.isErr()) {
+    locals.logError('Error getting user ID from session', userId.error);
+    switch (userId.error._tag) {
+      case 'InvalidCredentialError':
+        return new Response('Unauthorized', { status: 401 });
+    }
+  }
+
   const updateResult = await locals.session.useDb((db) =>
     db
       .update(taskDependencies)
       .set({ dependency_type: body.relationship_type, updated_at: SQL_NOW })
       .where(
         and(
-          eq(taskDependencies.created_by, userId),
+          eq(taskDependencies.created_by, userId.value),
           eq(taskDependencies.id, params.relationship_id),
           eq(taskDependencies.task_id, params.task_id)
         )
@@ -56,6 +64,13 @@ export const DELETE: RequestHandler = async ({ locals }) => {
   });
 
   const userId = await locals.session.getUserId();
+  if (userId.isErr()) {
+    locals.logError('Error getting user ID from session', userId.error);
+    switch (userId.error._tag) {
+      case 'InvalidCredentialError':
+        return new Response('Unauthorized', { status: 401 });
+    }
+  }
 
   // Delete the relationship
   const deleteResult = await locals.session.useDb((db) =>
@@ -63,7 +78,7 @@ export const DELETE: RequestHandler = async ({ locals }) => {
       .delete(taskDependencies)
       .where(
         and(
-          eq(taskDependencies.created_by, userId),
+          eq(taskDependencies.created_by, userId.value),
           eq(taskDependencies.id, params.relationship_id)
         )
       )

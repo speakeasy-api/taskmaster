@@ -10,6 +10,8 @@ import { neon } from '@neondatabase/serverless';
 import { DATABASE_AUTHENTICATED_URL } from '$env/static/private';
 import { combinedSchemas } from '$lib/db';
 import type { User } from 'better-auth/types';
+import type { TaggedError } from '../services/errors';
+import { errAsync, okAsync, Result } from 'neverthrow';
 
 const clearAuthCookies = () => {
   const { cookies } = getRequestEvent();
@@ -167,14 +169,6 @@ export const createApiKeyValidator = (): (() => Promise<ValidateSessionResult>) 
   };
 };
 
-// interface ISessionHandler {
-//   validate(): Promise<{ user: { id: string }; jwt: string }>;
-//   useDb: <TResult>(
-//     cb: (db: AuthenticatedDbClient) => MaybePromise<TResult>
-//   ) => MaybePromise<TResult>;
-//   getUserId(): Promise<string>;
-// }
-
 export abstract class BaseSessionHandler {
   _event = getRequestEvent();
 
@@ -182,7 +176,10 @@ export abstract class BaseSessionHandler {
     if (params.eagerValidate) this.validate();
   }
 
-  abstract validate(): Promise<{ user: { id: string }; jwt: string }>;
+  // abstract validate(): Promise<{ user: { id: string }; jwt: string }>;
+  abstract validate(): Promise<
+    Result<{ user: { id: string }; jwt: string }, InvalidCredentialError>
+  >;
 
   abstract getUser(): Promise<User>;
 
@@ -201,19 +198,28 @@ export abstract class BaseSessionHandler {
   };
 
   async getJwt(): Promise<string> {
-    const session = await this.validate();
-    return session.jwt;
+    const validation = await this.validate();
+    if (validation.isErr()) {
+      this._event.locals.logError('Session validation failed', validation.error);
+      throw validation.error;
+    }
+
+    return validation.value.jwt;
   }
 
-  async getUserId(): Promise<string> {
-    const validatedSession = await this.validate();
-    return validatedSession.user.id;
+  async getUserId(): Promise<Result<string, InvalidCredentialError>> {
+    const validation = await this.validate();
+    if (validation.isErr()) {
+      this._event.locals.logError('Session validation failed', validation.error);
+      return errAsync(validation.error);
+    }
+
+    return okAsync(validation.value.user.id);
   }
 }
 
 export class AppSessionHandler extends BaseSessionHandler {
   private validatedSession: ValidateSessionResult | null = null;
-  // private event = getRequestEvent();
 
   constructor(options: { eagerValidate?: boolean }) {
     super(options);
@@ -222,7 +228,7 @@ export class AppSessionHandler extends BaseSessionHandler {
   /** Validates the current user session with request-scoped caching. */
   async validate() {
     if (this.validatedSession) {
-      return this.validatedSession;
+      return okAsync(this.validatedSession);
     }
 
     const sessionResponse = await auth.api.getSession({
@@ -256,12 +262,18 @@ export class AppSessionHandler extends BaseSessionHandler {
       jwt: sessionResponse.headers.get('set-auth-jwt')!
     };
 
-    return this.validatedSession;
+    return okAsync(this.validatedSession);
   }
 
   async getUser(): Promise<User> {
-    const session = await this.validate();
-    return session.user;
+    const validation = await this.validate();
+
+    if (validation.isErr()) {
+      this._event.locals.logError('Session validation failed', validation.error);
+      throw validation.error;
+    }
+
+    return validation.value.user;
   }
 }
 
@@ -271,50 +283,55 @@ export class ApiBearerTokenHandler extends BaseSessionHandler {
 
   constructor(options: { eagerValidate?: boolean }) {
     super(options);
-    // if (options.eagerValidate) this.validate();
   }
 
   async validate() {
-    if (this.validatedToken) return this.validatedToken;
+    if (this.validatedToken) return okAsync(this.validatedToken);
 
     const authHeader = this._event.request.headers.get('Authorization');
 
     if (!authHeader) {
-      error(401, { message: 'Authorization header missing' });
+      return errAsync(new InvalidCredentialError('Authorization header missing'));
     }
+
     if (!authHeader.startsWith('Bearer ')) {
-      error(401, { message: 'Invalid Authorization header format' });
+      return errAsync(new InvalidCredentialError('Invalid Authorization header format'));
     }
 
     const parts = authHeader.split(' ');
 
     if (parts.length !== 2) {
-      error(401, { message: 'Invalid Authorization header format' });
+      return errAsync(new InvalidCredentialError('Invalid Authorization header format'));
     }
     const providedToken = parts[1];
     const jwtPayload = await verifyJwt(providedToken);
 
     if (!jwtPayload.valid || !jwtPayload.payload) {
-      error(401, { message: 'Invalid or expired token' });
+      return errAsync(new InvalidCredentialError('Invalid or expired token'));
     }
 
     const parseResult = MinimumJwtPayloadSchema.safeParse(jwtPayload.payload);
     if (!parseResult.success) {
       this._event.locals.logError('JWT payload is missing required fields:', parseResult.error);
-      error(401, { message: 'Invalid token payload' });
+      return errAsync(new InvalidCredentialError('Invalid token payload'));
     }
 
     this.validatedToken = { jwt: providedToken, user: { id: parseResult.data.sub } };
-    return this.validatedToken;
+    return okAsync(this.validatedToken);
   }
 
   async getUser(): Promise<User> {
     if (this.user) return this.user;
 
-    const session = await this.validate();
+    const validation = await this.validate();
+    if (validation.isErr()) {
+      this._event.locals.logError('Bearer token validation failed', validation.error);
+      throw validation.error;
+    }
+
     const user = await this.useDb((db) =>
       db.query.users.findFirst({
-        where: (users, { eq }) => eq(users.id, session.user.id)
+        where: (users, { eq }) => eq(users.id, validation.value.user.id)
       })
     );
 
@@ -335,11 +352,11 @@ export class ApiKeySessionHandler extends BaseSessionHandler {
   }
 
   async validate() {
-    if (this.validatedSession) return this.validatedSession;
+    if (this.validatedSession) return okAsync(this.validatedSession);
 
     const apiKey = this._event.request.headers.get('x-api-key');
     if (!apiKey) {
-      error(401, { message: 'API key missing' });
+      return errAsync(new InvalidCredentialError('API key missing'));
     }
 
     const sessionResponse = await auth.api.getSession({
@@ -347,7 +364,7 @@ export class ApiKeySessionHandler extends BaseSessionHandler {
     });
 
     if (!sessionResponse) {
-      error(401, { message: 'Invalid API key' });
+      return errAsync(new InvalidCredentialError('Invalid API key'));
     }
 
     const jwt = await generateJwt({
@@ -355,11 +372,24 @@ export class ApiKeySessionHandler extends BaseSessionHandler {
     });
 
     this.validatedSession = { ...sessionResponse, jwt };
-    return this.validatedSession;
+    return okAsync(this.validatedSession);
   }
 
   async getUser(): Promise<User> {
-    const session = await this.validate();
-    return session.user;
+    const validation = await this.validate();
+    if (validation.isErr()) {
+      this._event.locals.logError('Session validation failed', validation.error);
+      throw validation.error;
+    }
+
+    return validation.value.user;
+  }
+}
+
+export class InvalidCredentialError extends Error implements TaggedError {
+  _tag = 'InvalidCredentialError' as const;
+
+  constructor(message?: string) {
+    super(message || 'Invalid Credential');
   }
 }
