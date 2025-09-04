@@ -1,6 +1,14 @@
+import { error } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals }) => {
   const apps = await locals.db.query.oauthApplications.findMany();
-  return { apps };
+  const apiKeys = await locals.services.apiKeys.list({ userId: await locals.session.getUserId() });
+
+  if (apiKeys.isErr()) {
+    locals.logError("Failed to load the user's api keys", apiKeys.error);
+    error(500, { message: 'Failed to load API keys' });
+  }
+
+  return { apps, apiKeys: apiKeys.value };
 };

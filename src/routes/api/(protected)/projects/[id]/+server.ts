@@ -9,7 +9,7 @@ export const DELETE: RequestHandler = async ({ locals }) => {
 
   const result = await locals.services.projects.delete({
     id: params.id,
-    created_by: await locals.getUserId()
+    created_by: await locals.session.getUserId()
   });
 
   if (result.isOk()) return new Response(null, { status: 204 });

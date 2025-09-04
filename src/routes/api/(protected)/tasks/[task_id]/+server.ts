@@ -24,15 +24,19 @@ export const PUT: RequestHandler = async ({ locals }) => {
 
   // Update the task
   try {
-    const userId = await locals.getUserId();
-    const result = await locals.db
-      .update(tasks)
-      .set({ ...body, updated_at: SQL_NOW })
-      .where(and(eq(tasks.created_by, userId), eq(tasks.id, params.task_id)))
-      .returning();
+    const userId = await locals.session.getUserId();
+    const result = await locals.session.useDb((db) =>
+      db
+        .update(tasks)
+        .set({ ...body, updated_at: SQL_NOW })
+        .where(and(eq(tasks.created_by, userId), eq(tasks.id, params.task_id)))
+        .returning()
+    );
+
     if (result.length === 0) {
       return new Response('Not Found', { status: 404 });
     }
+
     return json(result[0]);
   } catch (e) {
     locals.logError(e);

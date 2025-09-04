@@ -1,6 +1,6 @@
 import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
-import { jwt, openAPI } from 'better-auth/plugins';
+import { jwt, openAPI, apiKey } from 'better-auth/plugins';
 import { db } from '../lib/db/index.js';
 import * as schemas from '../lib/db/schemas/auth.js';
 import { oidcProvider } from './oidc-provider/index.js';
@@ -32,6 +32,14 @@ export const auth = betterAuth({
 
   plugins: [
     sveltekitCookies(getRequestEvent),
+    apiKey({
+      rateLimit: { enabled: false },
+      schema: {
+        apikey: {
+          fields: {}
+        }
+      }
+    }),
     jwt({
       jwks: {
         keyPairConfig: {

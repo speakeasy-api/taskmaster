@@ -4,7 +4,9 @@ import z from 'zod';
 import type { RequestHandler } from './$types.js';
 
 export const GET: RequestHandler = async ({ locals }) => {
-  const result = await locals.services.projects.list({ created_by: await locals.getUserId() });
+  const result = await locals.services.projects.list({
+    created_by: await locals.session.getUserId()
+  });
 
   if (result.isOk()) {
     return json(result.value);
@@ -38,7 +40,7 @@ export const POST: RequestHandler = async ({ locals }) => {
   const result = await locals.services.projects.create({
     name,
     description,
-    created_by: await locals.getUserId()
+    created_by: await locals.session.getUserId()
   });
 
   if (result.isOk()) return json(result.value, { status: 201 });
