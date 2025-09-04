@@ -1,11 +1,20 @@
 import { validateRequest } from '$lib/server/event-utilities/validation.js';
-import { json } from '@sveltejs/kit';
+import { error, json } from '@sveltejs/kit';
 import z from 'zod';
 import type { RequestHandler } from './$types.js';
 
 export const GET: RequestHandler = async ({ locals }) => {
+  const userId = await locals.session.getUserId();
+  if (userId.isErr()) {
+    locals.logError('Error getting user ID from session', userId.error);
+    switch (userId.error._tag) {
+      case 'InvalidCredentialError':
+        error(401, userId.error.message);
+    }
+  }
+
   const result = await locals.services.projects.list({
-    created_by: await locals.session.getUserId()
+    created_by: userId.value
   });
 
   if (result.isOk()) {
@@ -34,13 +43,21 @@ export const POST: RequestHandler = async ({ locals }) => {
   const { body } = await validateRequest({
     bodySchema: CreateProjectSchema
   });
-
   const { name, description } = body;
+
+  const userId = await locals.session.getUserId();
+  if (userId.isErr()) {
+    locals.logError('Error getting user ID from session', userId.error);
+    switch (userId.error._tag) {
+      case 'InvalidCredentialError':
+        error(401, userId.error.message);
+    }
+  }
 
   const result = await locals.services.projects.create({
     name,
     description,
-    created_by: await locals.session.getUserId()
+    created_by: userId.value
   });
 
   if (result.isOk()) return json(result.value, { status: 201 });

@@ -16,10 +16,18 @@ export const GET: RequestHandler = async ({ locals }) => {
   });
 
   const userId = await locals.session.getUserId();
+  if (userId.isErr()) {
+    locals.logError('Error getting user ID from session', userId.error);
+    switch (userId.error._tag) {
+      case 'InvalidCredentialError':
+        return new Response('Unauthorized', { status: 401 });
+    }
+  }
+
   const relationships = await locals.session.useDb((db) =>
     db.query.taskDependencies.findMany({
       where: and(
-        eq(taskDependencies.created_by, userId),
+        eq(taskDependencies.created_by, userId.value),
         eq(taskDependencies.task_id, params.task_id),
         query.relationship_type
           ? eq(taskDependencies.dependency_type, query.relationship_type)
@@ -63,12 +71,19 @@ export const POST: RequestHandler = async ({ locals }) => {
 
   // Verify both tasks exist and user owns them
   const userId = await locals.session.getUserId();
+  if (userId.isErr()) {
+    locals.logError('Error getting user ID from session', userId.error);
+    switch (userId.error._tag) {
+      case 'InvalidCredentialError':
+        return new Response('Unauthorized', { status: 401 });
+    }
+  }
 
   return locals.session.useDb(async (db) => {
     const existingTasks = await db.query.tasks.findMany({
       limit: 2,
       where: (table, { inArray, eq, and }) =>
-        and(eq(table.created_by, userId), inArray(table.id, [task_id, target_task_id]))
+        and(eq(table.created_by, userId.value), inArray(table.id, [task_id, target_task_id]))
     });
 
     if (existingTasks.length !== 2) {

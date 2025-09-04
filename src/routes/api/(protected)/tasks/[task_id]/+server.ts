@@ -1,6 +1,6 @@
 import { tasks, taskStatusEnum } from '$lib/db/schemas/schema.js';
 import { validateRequest } from '$lib/server/event-utilities/validation.js';
-import { json } from '@sveltejs/kit';
+import { error, json } from '@sveltejs/kit';
 import { and, eq } from 'drizzle-orm';
 import z from 'zod';
 import type { RequestHandler } from './$types.js';
@@ -25,11 +25,19 @@ export const PUT: RequestHandler = async ({ locals }) => {
   // Update the task
   try {
     const userId = await locals.session.getUserId();
+    if (userId.isErr()) {
+      locals.logError('Error getting user ID from session', userId.error);
+      switch (userId.error._tag) {
+        case 'InvalidCredentialError':
+          error(401, 'Invalid or expired credential(s)');
+      }
+    }
+
     const result = await locals.session.useDb((db) =>
       db
         .update(tasks)
         .set({ ...body, updated_at: SQL_NOW })
-        .where(and(eq(tasks.created_by, userId), eq(tasks.id, params.task_id)))
+        .where(and(eq(tasks.created_by, userId.value), eq(tasks.id, params.task_id)))
         .returning()
     );
 

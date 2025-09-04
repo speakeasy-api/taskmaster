@@ -1,12 +1,9 @@
-import { users } from '$lib/db/schemas/auth.js';
 import { validateRequest } from '$lib/server/event-utilities/validation.js';
-import { json } from '@sveltejs/kit';
-import { eq } from 'drizzle-orm';
+import { error, json } from '@sveltejs/kit';
 import { z } from 'zod';
 import type { RequestHandler } from './$types.js';
 
 export const GET: RequestHandler = async ({ locals }) => {
-  const userId = await locals.session.getUserId();
   const { query } = await validateRequest({
     querySchema: z.object({
       search: z.string().optional(),
@@ -15,12 +12,31 @@ export const GET: RequestHandler = async ({ locals }) => {
   });
   const { search, user_id } = query;
 
+  const userId = await locals.session.getUserId();
+  if (userId.isErr()) {
+    locals.logError('Error getting user ID from session', userId.error);
+    switch (userId.error._tag) {
+      case 'InvalidCredentialError':
+        throw error(401, userId.error.message);
+    }
+  }
+
   // Check if user has @speakeasy.com email domain
-  const user = await locals.session.useDb((db) =>
-    db.select().from(users).where(eq(users.id, userId)).limit(1)
-  );
-  if (!user[0] || !user[0].email.endsWith('@speakeasy.com')) {
-    return new Response('Forbidden', { status: 403 });
+  const user = await locals.services.adminUsers.get({ id: userId.value });
+
+  if (user.isErr()) {
+    switch (user.error._tag) {
+      case 'DatabaseError':
+        locals.logError('Database error fetching user', user.error);
+        throw error(500, 'There was a database error fetching the user.');
+      case 'UserNotFoundError':
+        throw error(401, 'Current user not found');
+    }
+  }
+
+  const isAdmin = user.value.email.endsWith('@speakeasy.com');
+  if (!isAdmin) {
+    error(403, 'Forbidden');
   }
 
   const result = await locals.services.adminProjects.list({
