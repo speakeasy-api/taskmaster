@@ -15,7 +15,7 @@ export const GET: RequestHandler = async ({ locals }) => {
     paramsSchema: ParamsSchema
   });
 
-  const userId = await locals.getUserId();
+  const userId = await locals.session.getUserId();
   const relationships = await locals.session.useDb((db) =>
     db.query.taskDependencies.findMany({
       where: and(
