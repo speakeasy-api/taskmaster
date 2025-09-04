@@ -17,7 +17,7 @@ export const GET: RequestHandler = async ({ locals }) => {
     locals.logError('Error getting user ID from session', userId.error);
     switch (userId.error._tag) {
       case 'InvalidCredentialError':
-        throw error(401, userId.error.message);
+        error(401, userId.error.message);
     }
   }
 
