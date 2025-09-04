@@ -14,6 +14,7 @@ servers:
 
 security:
   - oauthToken: []
+  - apiKey: []
 
 components:
   securitySchemes:
@@ -27,6 +28,11 @@ components:
             - openid
             - profile
             - email
+    apiKey:
+      type: apiKey
+      in: header
+      name: x-api-key
+      description: API key for authentication. Obtain from your account settings.
 
   schemas:
     TaskStatus:
@@ -193,6 +199,7 @@ paths:
       description: Creates a new task for the authenticated user in Taskmaster
       security:
         - oauthToken: []
+        - apiKey: []
       requestBody:
         description: Task data for creation
         required: true
@@ -291,6 +298,7 @@ paths:
       description: Retrieves all tasks belonging to the authenticated user in Taskmaster. Optionally filter by project.
       security:
         - oauthToken: []
+        - apiKey: []
       parameters:
         - name: project_id
           in: query
@@ -348,6 +356,7 @@ paths:
       description: Updates a task by ID for the authenticated user in Taskmaster. All fields are optional for partial updates.
       security:
         - oauthToken: []
+        - apiKey: []
       parameters:
         - name: id
           in: path
@@ -445,6 +454,7 @@ paths:
       description: Deletes a task by ID for the authenticated user in Taskmaster
       security:
         - oauthToken: []
+        - apiKey: []
       parameters:
         - name: id
           in: path
@@ -486,6 +496,7 @@ paths:
       description: Retrieves all relationships for a specific task belonging to the authenticated user in Taskmaster. Optionally filter by relationship type.
       security:
         - oauthToken: []
+        - apiKey: []
       parameters:
         - name: task_id
           in: path
@@ -553,6 +564,7 @@ paths:
         `task_id`.
       security:
         - oauthToken: []
+        - apiKey: []
       parameters:
         - name: task_id
           in: path
@@ -668,6 +680,7 @@ paths:
       description: Updates the relationship type for a specific task relationship belonging to the authenticated user in Taskmaster
       security:
         - oauthToken: []
+        - apiKey: []
       parameters:
         - name: task_id
           in: path
@@ -762,6 +775,7 @@ paths:
       description: Deletes a specific task relationship belonging to the authenticated user in Taskmaster
       security:
         - oauthToken: []
+        - apiKey: []
       parameters:
         - name: task_id
           in: path
@@ -824,6 +838,7 @@ paths:
       description: Creates a new project for the authenticated user in Taskmaster
       security:
         - oauthToken: []
+        - apiKey: []
       requestBody:
         description: Project data for creation
         required: true
@@ -906,6 +921,7 @@ paths:
       description: Retrieves all projects belonging to the authenticated user in Taskmaster
       security:
         - oauthToken: []
+        - apiKey: []
       responses:
         '200':
           description: Successfully retrieved projects
@@ -950,6 +966,7 @@ paths:
       description: Deletes a project by ID for the authenticated user in Taskmaster. Associated tasks will be automatically deleted due to cascade delete.
       security:
         - oauthToken: []
+        - apiKey: []
       parameters:
         - name: id
           in: path
@@ -991,6 +1008,7 @@ paths:
       description: Retrieves all projects in the system with optional filtering. Only available to users with @speakeasy.com email domain.
       security:
         - oauthToken: []
+        - apiKey: []
       parameters:
         - name: search
           in: query
