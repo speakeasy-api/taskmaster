@@ -1,7 +1,9 @@
 <script lang="ts">
   import SquareAsteriskIcon from '@lucide/svelte/icons/square-asterisk';
   import ArrowLeftRightIcon from '@lucide/svelte/icons/arrow-left-right';
+  import KeyIcon from '@lucide/svelte/icons/key';
   import SquareArrowOutUpRightIcon from '@lucide/svelte/icons/square-arrow-out-up-right';
+  import HomeIcon from '@lucide/svelte/icons/home';
   import { page } from '$app/state';
   import type { Component } from 'svelte';
   import type { LayoutProps } from './$types';
@@ -34,8 +36,23 @@
         <p class="ml-2 text-xs text-surface-500">Developer Docs</p>
       </header>
       <section class="p-2">
-        <p class="p-2 text-sm tracking-wide text-surface-500">OAuth2.0 Flows</p>
+        <p class="p-2 text-sm tracking-wide text-surface-500">Overview</p>
         <ul class="space-y-1">
+          {@render navLink(
+            resolve('/docs'),
+            'Getting Started',
+            HomeIcon
+          )}
+        </ul>
+      </section>
+      <section class="p-2">
+        <p class="p-2 text-sm tracking-wide text-surface-500">Authentication</p>
+        <ul class="space-y-1">
+          {@render navLink(
+            resolve('/docs/auth/api-keys'),
+            'API Keys',
+            KeyIcon
+          )}
           {@render navLink(
             resolve('/docs/auth/client-credentials-flow'),
             'Client Credentials',
