@@ -18,7 +18,7 @@ const bearerAuthenticator = async (): Promise<string> => {
 
 const apiKeyAuthenticator = async (): Promise<string> => {
   const { locals } = getRequestEvent();
-  const session = await locals.validateSession();
+  const session = await locals.validateApiKey();
   return session.jwt;
 };
 

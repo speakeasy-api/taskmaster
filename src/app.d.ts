@@ -1,4 +1,4 @@
-import type { ValidateBearerTokenResult } from '$lib/server/event-utilities';
+import type { BaseSessionHandler, ValidateBearerTokenResult } from '$lib/server/event-utilities';
 import type { AuthenticatedDbClient } from '$lib/server/event-utilities/db';
 import type { ServiceContainer } from '$lib/server/services';
 
@@ -29,6 +29,8 @@ declare global {
       db: AuthenticatedDbClient;
 
       services: ServiceContainer;
+
+      session: BaseSessionHandler;
     }
     // interface PageData {}
     // interface PageState {}

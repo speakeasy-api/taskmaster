@@ -3,6 +3,7 @@ import { json } from '@sveltejs/kit';
 import z from 'zod';
 import type { RequestHandler } from './$types.js';
 import { validateRequest } from '$lib/server/event-utilities/validation.js';
+import { and, eq } from 'drizzle-orm';
 
 export const GET: RequestHandler = async ({ locals }) => {
   const { query } = await validateRequest({
@@ -13,11 +14,10 @@ export const GET: RequestHandler = async ({ locals }) => {
   const userId = await locals.getUserId();
 
   const result = await locals.db.query.tasks.findMany({
-    where: (table, { eq, and }) => {
-      const conditions = [eq(table.created_by, userId)];
-      if (project_id) conditions.push(eq(table.project_id, project_id));
-      return and(...conditions);
-    }
+    where: and(
+      eq(tasks.created_by, userId),
+      project_id ? eq(tasks.project_id, project_id) : undefined
+    )
   });
 
   return json(result);
