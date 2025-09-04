@@ -13,19 +13,27 @@ declare global {
       /** Log an error to server console (or any other logging system you set up) */
       logError: (...args: unknown[]) => void;
 
-      /** Get a valid session cookie or redirect to login. */
+      /** @deprecated Use `locals.session.validate()` instead */
       validateSession: () => Promise<ValidateSessionResult>;
 
+      /** @deprecated Use `locals.session.validate()` instead */
       validateBearerToken: () => Promise<ValidateBearerTokenResult>;
 
+      /** @deprecated Use `locals.session.validate()` instead */
       validateApiKey: () => Promise<ValidateSessionResult>;
 
+      /** @deprecated Use `locals.session.getUserId()` instead */
       getUserId: () => Promise<string>;
 
       /** Send a message to the client that will be displayed as a toast. */
       sendFlashMessage: (params: Omit<FlashMessage, 'createdAt'>) => void;
 
-      /** Database connection that includes the JWT for the current user (if any) */
+      /**
+       * Database connection that includes the JWT for the current user (if
+       * any)
+       *
+       * @deprecated Use `locals.session.useDb()` instead
+       * */
       db: AuthenticatedDbClient;
 
       services: ServiceContainer;

@@ -17,18 +17,20 @@ export const PUT: RequestHandler = async ({ locals }) => {
   });
 
   // Update the relationship
-  const userId = await locals.getUserId();
-  const updateResult = await locals.db
-    .update(taskDependencies)
-    .set({ dependency_type: body.relationship_type, updated_at: SQL_NOW })
-    .where(
-      and(
-        eq(taskDependencies.created_by, userId),
-        eq(taskDependencies.id, params.relationship_id),
-        eq(taskDependencies.task_id, params.task_id)
+  const userId = await locals.session.getUserId();
+  const updateResult = await locals.session.useDb((db) =>
+    db
+      .update(taskDependencies)
+      .set({ dependency_type: body.relationship_type, updated_at: SQL_NOW })
+      .where(
+        and(
+          eq(taskDependencies.created_by, userId),
+          eq(taskDependencies.id, params.relationship_id),
+          eq(taskDependencies.task_id, params.task_id)
+        )
       )
-    )
-    .returning();
+      .returning()
+  );
 
   if (updateResult.length === 0) {
     return new Response('Not Found', { status: 404 });
@@ -53,15 +55,20 @@ export const DELETE: RequestHandler = async ({ locals }) => {
     paramsSchema: ParamsSchema
   });
 
-  const userId = await locals.getUserId();
+  const userId = await locals.session.getUserId();
 
   // Delete the relationship
-  const deleteResult = await locals.db
-    .delete(taskDependencies)
-    .where(
-      and(eq(taskDependencies.created_by, userId), eq(taskDependencies.id, params.relationship_id))
-    )
-    .returning();
+  const deleteResult = await locals.session.useDb((db) =>
+    db
+      .delete(taskDependencies)
+      .where(
+        and(
+          eq(taskDependencies.created_by, userId),
+          eq(taskDependencies.id, params.relationship_id)
+        )
+      )
+      .returning()
+  );
 
   if (deleteResult.length === 0) {
     return new Response('Not found', { status: 404 });

@@ -2,6 +2,9 @@ import { building } from '$app/environment';
 import { auth } from '$lib/auth';
 import { db as adminDb } from '$lib/db';
 import {
+  ApiBearerTokenHandler,
+  ApiKeySessionHandler,
+  AppSessionHandler,
   createApiKeyValidator,
   createAuthenticatedDb,
   createBearerTokenValidator,
@@ -26,9 +29,12 @@ export const handle: Handle = async ({ event, resolve }) => {
 
   const authType = getAuthTypeForRoute();
   if (authType !== 'none') {
-    if (authType === 'session') await event.locals.validateSession();
-    else if (authType === 'bearer') await event.locals.validateBearerToken();
-    else if (authType === 'apiKey') await event.locals.validateApiKey();
+    if (authType === 'session')
+      event.locals.session = new AppSessionHandler({ eagerValidate: true });
+    else if (authType === 'bearer')
+      event.locals.session = new ApiBearerTokenHandler({ eagerValidate: true });
+    else if (authType === 'apiKey')
+      event.locals.session = new ApiKeySessionHandler({ eagerValidate: true });
 
     event.locals.db = createAuthenticatedDb(authType);
     event.locals.getUserId = createUserIdGetter(authType);

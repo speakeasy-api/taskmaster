@@ -1,4 +1,3 @@
-import { db } from '$lib/db/index.js';
 import { users } from '$lib/db/schemas/auth.js';
 import { validateRequest } from '$lib/server/event-utilities/validation.js';
 import { json } from '@sveltejs/kit';
@@ -7,7 +6,7 @@ import { z } from 'zod';
 import type { RequestHandler } from './$types.js';
 
 export const GET: RequestHandler = async ({ locals }) => {
-  const userId = await locals.getUserId();
+  const userId = await locals.session.getUserId();
   const { query } = await validateRequest({
     querySchema: z.object({
       search: z.string().optional(),
@@ -17,7 +16,9 @@ export const GET: RequestHandler = async ({ locals }) => {
   const { search, user_id } = query;
 
   // Check if user has @speakeasy.com email domain
-  const user = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+  const user = await locals.session.useDb((db) =>
+    db.select().from(users).where(eq(users.id, userId)).limit(1)
+  );
   if (!user[0] || !user[0].email.endsWith('@speakeasy.com')) {
     return new Response('Forbidden', { status: 403 });
   }

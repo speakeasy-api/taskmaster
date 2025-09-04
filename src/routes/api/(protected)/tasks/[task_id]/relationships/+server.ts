@@ -16,17 +16,17 @@ export const GET: RequestHandler = async ({ locals }) => {
   });
 
   const userId = await locals.getUserId();
-
-  // Get relationships with related task information
-  const relationships = await locals.db.query.taskDependencies.findMany({
-    where: (table, { eq, and }) => {
-      const conditions = [eq(table.created_by, userId), eq(table.task_id, params.task_id)];
-      if (query.relationship_type) {
-        conditions.push(eq(table.dependency_type, query.relationship_type));
-      }
-      return and(...conditions);
-    }
-  });
+  const relationships = await locals.session.useDb((db) =>
+    db.query.taskDependencies.findMany({
+      where: and(
+        eq(taskDependencies.created_by, userId),
+        eq(taskDependencies.task_id, params.task_id),
+        query.relationship_type
+          ? eq(taskDependencies.dependency_type, query.relationship_type)
+          : undefined
+      )
+    })
+  );
 
   // Transform the response to use relationship terminology
   const transformedRelationships = relationships.map((rel) => ({
@@ -62,53 +62,56 @@ export const POST: RequestHandler = async ({ locals }) => {
   }
 
   // Verify both tasks exist and user owns them
-  const userId = await locals.getUserId();
-  const existingTasks = await locals.db.query.tasks.findMany({
-    limit: 2,
-    where: (table, { inArray, eq, and }) =>
-      and(eq(table.created_by, userId), inArray(table.id, [task_id, target_task_id]))
+  const userId = await locals.session.getUserId();
+
+  return locals.session.useDb(async (db) => {
+    const existingTasks = await db.query.tasks.findMany({
+      limit: 2,
+      where: (table, { inArray, eq, and }) =>
+        and(eq(table.created_by, userId), inArray(table.id, [task_id, target_task_id]))
+    });
+
+    if (existingTasks.length !== 2) {
+      return json({ message: 'One or both tasks not found or not owned by user' }, { status: 404 });
+    }
+
+    // Check if relationship already exists
+    const existingRelationship = await db.query.taskDependencies.findFirst({
+      where: and(
+        eq(taskDependencies.task_id, task_id),
+        eq(taskDependencies.depends_on_task_id, target_task_id)
+      )
+    });
+
+    if (existingRelationship) {
+      return json({ message: 'Relationship already exists between these tasks' }, { status: 409 });
+    }
+
+    // Create the relationship
+    const insertResult = await db
+      .insert(taskDependencies)
+      .values({
+        task_id,
+        depends_on_task_id: target_task_id,
+        dependency_type: relationshipType
+      })
+      .returning();
+
+    if (insertResult.length === 0) {
+      return json({ message: 'Failed to create task relationship' }, { status: 500 });
+    }
+
+    return json(
+      {
+        id: insertResult[0].id,
+        task_id: insertResult[0].task_id,
+        relates_to_task_id: insertResult[0].depends_on_task_id,
+        relationship_type: insertResult[0].dependency_type,
+        created_by: insertResult[0].created_by,
+        created_at: insertResult[0].created_at,
+        updated_at: insertResult[0].updated_at
+      },
+      { status: 201 }
+    );
   });
-
-  if (existingTasks.length !== 2) {
-    return json({ message: 'One or both tasks not found or not owned by user' }, { status: 404 });
-  }
-
-  // Check if relationship already exists
-  const existingRelationship = await locals.db.query.taskDependencies.findFirst({
-    where: and(
-      eq(taskDependencies.task_id, task_id),
-      eq(taskDependencies.depends_on_task_id, target_task_id)
-    )
-  });
-
-  if (existingRelationship) {
-    return json({ message: 'Relationship already exists between these tasks' }, { status: 409 });
-  }
-
-  // Create the relationship
-  const insertResult = await locals.db
-    .insert(taskDependencies)
-    .values({
-      task_id,
-      depends_on_task_id: target_task_id,
-      dependency_type: relationshipType
-    })
-    .returning();
-
-  if (insertResult.length === 0) {
-    return json({ message: 'Failed to create task relationship' }, { status: 500 });
-  }
-
-  // Transform the response to use relationship terminology
-  const transformedRelationship = {
-    id: insertResult[0].id,
-    task_id: insertResult[0].task_id,
-    relates_to_task_id: insertResult[0].depends_on_task_id,
-    relationship_type: insertResult[0].dependency_type,
-    created_by: insertResult[0].created_by,
-    created_at: insertResult[0].created_at,
-    updated_at: insertResult[0].updated_at
-  };
-
-  return json(transformedRelationship, { status: 201 });
 };

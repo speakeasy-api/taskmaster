@@ -9,6 +9,7 @@ import { drizzle } from 'drizzle-orm/neon-http';
 import { neon } from '@neondatabase/serverless';
 import { DATABASE_AUTHENTICATED_URL } from '$env/static/private';
 import { combinedSchemas } from '$lib/db';
+import type { User } from 'better-auth/types';
 
 const clearAuthCookies = () => {
   const { cookies } = getRequestEvent();
@@ -183,12 +184,18 @@ export abstract class BaseSessionHandler {
 
   abstract validate(): Promise<{ user: { id: string }; jwt: string }>;
 
+  abstract getUser(): Promise<User>;
+
+  /** Provides a database client authenticated with the current user's JWT. */
   useDb = <TResult>(
     cb: (db: AuthenticatedDbClient) => MaybePromise<TResult>
   ): MaybePromise<TResult> => {
     const authenticatedDb = drizzle(neon(DATABASE_AUTHENTICATED_URL), {
       schema: combinedSchemas
-    }).$withAuth(this.getJwt);
+    }).$withAuth(async () => {
+      const jwt = await this.getJwt();
+      return jwt;
+    });
 
     return cb(authenticatedDb);
   };
@@ -213,7 +220,7 @@ export class AppSessionHandler extends BaseSessionHandler {
   }
 
   /** Validates the current user session with request-scoped caching. */
-  validate = async () => {
+  async validate() {
     if (this.validatedSession) {
       return this.validatedSession;
     }
@@ -250,17 +257,24 @@ export class AppSessionHandler extends BaseSessionHandler {
     };
 
     return this.validatedSession;
-  };
+  }
+
+  async getUser(): Promise<User> {
+    const session = await this.validate();
+    return session.user;
+  }
 }
 
 export class ApiBearerTokenHandler extends BaseSessionHandler {
   private validatedToken: ValidateBearerTokenResult | null = null;
+  private user: User | null = null;
 
   constructor(options: { eagerValidate?: boolean }) {
     super(options);
+    // if (options.eagerValidate) this.validate();
   }
 
-  validate = async () => {
+  async validate() {
     if (this.validatedToken) return this.validatedToken;
 
     const authHeader = this._event.request.headers.get('Authorization');
@@ -292,7 +306,25 @@ export class ApiBearerTokenHandler extends BaseSessionHandler {
 
     this.validatedToken = { jwt: providedToken, user: { id: parseResult.data.sub } };
     return this.validatedToken;
-  };
+  }
+
+  async getUser(): Promise<User> {
+    if (this.user) return this.user;
+
+    const session = await this.validate();
+    const user = await this.useDb((db) =>
+      db.query.users.findFirst({
+        where: (users, { eq }) => eq(users.id, session.user.id)
+      })
+    );
+
+    if (!user) {
+      error(401, { message: 'User not found' });
+    }
+
+    this.user = user;
+    return user;
+  }
 }
 
 export class ApiKeySessionHandler extends BaseSessionHandler {
@@ -302,7 +334,7 @@ export class ApiKeySessionHandler extends BaseSessionHandler {
     super(options);
   }
 
-  validate = async () => {
+  async validate() {
     if (this.validatedSession) return this.validatedSession;
 
     const apiKey = this._event.request.headers.get('x-api-key');
@@ -324,5 +356,10 @@ export class ApiKeySessionHandler extends BaseSessionHandler {
 
     this.validatedSession = { ...sessionResponse, jwt };
     return this.validatedSession;
-  };
+  }
+
+  async getUser(): Promise<User> {
+    const session = await this.validate();
+    return session.user;
+  }
 }

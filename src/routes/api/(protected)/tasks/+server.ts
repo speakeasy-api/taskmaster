@@ -13,12 +13,14 @@ export const GET: RequestHandler = async ({ locals }) => {
   const { project_id } = query;
   const userId = await locals.getUserId();
 
-  const result = await locals.db.query.tasks.findMany({
-    where: and(
-      eq(tasks.created_by, userId),
-      project_id ? eq(tasks.project_id, project_id) : undefined
-    )
-  });
+  const result = await locals.session.useDb((db) =>
+    db.query.tasks.findMany({
+      where: and(
+        eq(tasks.created_by, userId),
+        project_id ? eq(tasks.project_id, project_id) : undefined
+      )
+    })
+  );
 
   return json(result);
 };
@@ -38,7 +40,12 @@ export const POST: RequestHandler = async ({ locals }) => {
     bodySchema: CreateTaskSchema
   });
 
-  const result = await locals.db.insert(tasks).values(body).returning();
+  const result = await locals.session.useDb((db) =>
+    db
+      .insert(tasks)
+      .values({ ...body })
+      .returning()
+  );
 
   if (result.length === 0) {
     return json({ message: 'Failed to create task' }, { status: 500 });

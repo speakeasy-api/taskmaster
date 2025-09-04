@@ -95,7 +95,7 @@ export async function extractClientCredentials(
 }
 
 export async function generateAccessToken(params: {
-  // ctx: TokenEndpointContext;
+  ctx: TokenEndpointContext;
   userId: string;
   clientId: string;
   opts: OIDCOptionsWithDefaults;
