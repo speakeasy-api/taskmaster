@@ -4,22 +4,22 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Development Commands
 
-- **Development server**: `npm run dev` or `bun dev`
-- **Production build**: `npm run build`
-- **Preview build**: `npm run preview`
-- **Type checking**: `npm run check` (includes svelte-kit sync)
-- **Continuous type checking**: `npm run check:watch`
-- **Linting**: `npm run lint` (prettier + eslint)
-- **Formatting**: `npm run format`
-- **Testing**: `npm run test` (vitest)
+- **Development server**: `bun dev`
+- **Production build**: `bun run build`
+- **Preview build**: `bun run preview`
+- **Type checking**: `bun run check` (includes svelte-kit sync)
+- **Continuous type checking**: `bun run check:watch`
+- **Linting**: `bun run lint` (prettier + eslint)
+- **Formatting**: `bun run format`
+- **Testing**: `bun run test` (vitest)
 
 ## Database Commands
 
-- **Generate migrations**: `bunx drizzle-kit generate`
-- **Run migrations**: `bunx drizzle-kit migrate`
+- **Generate migrations**: `bun run gen:db`
+- **Run migrations**: `bun run migrate`
 - **Database studio**: `bunx drizzle-kit studio`
 
-The project uses PostgreSQL with Drizzle ORM. Database configuration is in `drizzle.config.ts` and requires `DATABASE_URL` environment variable.
+The project uses PostgreSQL with Drizzle ORM. Database configuration is in `drizzle.config.js` and requires `DATABASE_URL` environment variable.
 
 ## Architecture Overview
 
@@ -38,7 +38,7 @@ Key auth features enabled:
 - OIDC provider plugin with login page at `/sign-in`
 - JWT tokens for API access
 - OpenAPI documentation generation
-- Session cookie caching (5-minute cache)
+- Session cookie caching (currently disabled - see TODO in auth.ts)
 - Dynamic client registration support
 
 ### OIDC Provider Implementation
@@ -93,12 +93,14 @@ This co-location pattern ensures that:
 - **Data fetching**: Use `prerender()` for data that can be cached at build time
 - **Error handling**: Use consistent utility functions for validation and database errors
 
-#### Utility Functions (`/src/lib/util.server.ts`)
+#### Utility Functions
 
-- `validateForm(formData, schema)`: Validates FormData against Zod schemas
-- `handleValidationError(validation)`: Returns consistent validation error responses
-- `handleDatabaseError(rowCount, message)`: Handles database operation errors
-- `createSuccessResponse(data)`: Creates standardized success responses
+Utility functions are organized throughout the `src/lib/server/` directory:
+
+- Form validation utilities in `src/lib/server/remote-fns.ts`
+- Authentication utilities in `src/lib/server/event-utilities/auth.ts`
+- Database helpers in `src/lib/server/event-utilities/db.ts`
+- Error handling in `src/lib/server/services/errors.ts`
 
 #### Usage Examples
 
@@ -107,7 +109,6 @@ This co-location pattern ensures that:
 ```typescript
 import { command } from '$app/server';
 import { CreateProjectRequest } from './CreateProjectModal.schemas';
-import { validateForm, handleValidationError } from '$lib/util.server';
 
 export const createProject = command(CreateProjectRequest, async (request) => {
   const { user } = await getRequestEvent().locals.validateSession();
@@ -126,13 +127,14 @@ import { CreateProjectRequest } from './CreateProjectModal.schemas';
 
 ```typescript
 import { form } from '$app/server';
-import { validateForm, handleValidationError } from '$lib/util.server';
+import { validateForm } from '$lib/server/remote-fns';
 import { DeleteProjectRequest } from './ProjectComponent.schemas';
 
 export const deleteProject = form(async (formData) => {
   const validation = validateForm(formData, DeleteProjectRequest);
   if (!validation.success) {
-    return handleValidationError(validation);
+    // Handle validation error
+    return { success: false, errors: validation.error.flatten() };
   }
   // Implementation...
 });
@@ -238,7 +240,7 @@ Before deploying API changes, ensure:
 - **Styling**: TailwindCSS 4.x with Skeleton UI components
 - **Database**: PostgreSQL with Drizzle ORM
 - **Auth**: Better Auth with email/password and OIDC support
-- **Package Manager**: pnpm (specified in package.json)
+- **Package Manager**: bun (specified in package.json)
 - **Build Tool**: Vite with SvelteKit and TailwindCSS plugins
 
 ### Key File Locations
