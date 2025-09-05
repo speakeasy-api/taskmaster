@@ -51,7 +51,7 @@
         </p>
       </div>
     </header>
-    <section>
+    <section class="max-w-3xl">
       <p class="whitespace-pre-wrap">{data.task.description}</p>
     </section>
   </div>
@@ -77,15 +77,17 @@
         </header>
 
         <ul class="space-y-2">
-          {#each depGroup.items as dependency (dependency.id)}
+          {#each depGroup.items as dep (dep.id)}
             <li class="">
               <a
-                href={resolve('/(protected)/projects/task/[task_id]', { task_id: dependency.id })}
+                href={resolve('/(protected)/projects/task/[task_id]', {
+                  task_id: dep.targetTaskId
+                })}
                 class="group flex items-center justify-between card preset-outlined-surface-200-800 p-0 pl-2 text-xs font-semibold hover:underline">
-                {dependency.title}
+                {dep.title}
                 <RelationDropdownMenu
                   triggerClass="invisible group-hover:visible rounded-none"
-                  relationId={dependency.id}
+                  relationId={dep.id}
                   value={depGroup.dataValue} />
               </a>
             </li>

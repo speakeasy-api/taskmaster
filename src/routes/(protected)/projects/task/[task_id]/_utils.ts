@@ -1,14 +1,13 @@
 import type { taskDependencyTypeEnum } from '$lib/db/schemas/schema';
 import type { InferEnum } from 'drizzle-orm';
 import type { PageData } from './$types';
-import { resolve } from '$app/paths';
 
 type UnifiedDependency = {
   id: string;
   title: string;
   typeLabel: string;
   invert: boolean;
-  href: string;
+  targetTaskId: string;
 };
 
 /**
@@ -28,7 +27,8 @@ export function unifyDependencies(pageTask: PageData['task']) {
       title: dep.dependsOnTask.title,
       typeLabel: normalizeDependencyType({ type: dep.dependency_type, invert: true }),
       invert: true,
-      href: resolve('/(protected)/projects/task/[task_id]', { task_id: dep.depends_on_task_id })
+      // href: resolve('/(protected)/projects/task/[task_id]', { task_id: dep.depends_on_task_id })
+      targetTaskId: dep.depends_on_task_id
     };
     if (dep.dependency_type === 'blocks') blocks.push(unifiedDep);
     else if (dep.dependency_type === 'relates_to') relatesTo.push(unifiedDep);
@@ -41,7 +41,7 @@ export function unifyDependencies(pageTask: PageData['task']) {
       title: dep.task.title,
       typeLabel: normalizeDependencyType({ type: dep.dependency_type, invert: false }),
       invert: false,
-      href: resolve('/(protected)/projects/task/[task_id]', { task_id: dep.task_id })
+      targetTaskId: dep.task_id
     };
     if (dep.dependency_type === 'blocks') blockedBy.push(unifiedDep);
     else if (dep.dependency_type === 'relates_to') relatesTo.push(unifiedDep);
