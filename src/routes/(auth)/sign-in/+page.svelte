@@ -80,7 +80,7 @@
   <div class="text-center">
     <p class="text-sm text-gray-600">
       Don't have an account?
-      <a href={resolve('/sign-up')} class="underline hover:text-primary-600">Sign up</a>
+      <a href={resolve('/sign-up/email')} class="underline hover:text-primary-600">Sign up</a>
     </p>
   </div>
 </form>
