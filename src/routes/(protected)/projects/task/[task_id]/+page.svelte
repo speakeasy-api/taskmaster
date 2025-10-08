@@ -106,6 +106,7 @@
 
 <AddRelationModal
   projectId={data.task.project_id}
+  taskId={data.task.id}
   excludeTaskIds={[
     data.task.id,
     ...data.task.dependencies.map((d) => d.depends_on_task_id),

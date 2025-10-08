@@ -38,21 +38,13 @@
       <section class="p-2">
         <p class="p-2 text-sm tracking-wide text-surface-500">Overview</p>
         <ul class="space-y-1">
-          {@render navLink(
-            resolve('/docs'),
-            'Getting Started',
-            HomeIcon
-          )}
+          {@render navLink(resolve('/docs'), 'Getting Started', HomeIcon)}
         </ul>
       </section>
       <section class="p-2">
         <p class="p-2 text-sm tracking-wide text-surface-500">Authentication</p>
         <ul class="space-y-1">
-          {@render navLink(
-            resolve('/docs/auth/api-keys'),
-            'API Keys',
-            KeyIcon
-          )}
+          {@render navLink(resolve('/docs/auth/api-keys'), 'API Keys', KeyIcon)}
           {@render navLink(
             resolve('/docs/auth/client-credentials-flow'),
             'Client Credentials',

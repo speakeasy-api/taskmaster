@@ -1,37 +1,25 @@
 import { form, getRequestEvent } from '$app/server';
 import { auth } from '$lib/auth';
-import { validateForm } from '$lib/server/remote-fns';
-import z from 'zod';
+import { DeleteApiKeyFormSchema } from './page.schemas';
 
-const DeleteApiKeyFormSchema = z.object({
-  id: z.string()
-});
+export const deleteApiKey = form(
+  DeleteApiKeyFormSchema,
+  async (data): Promise<{ success: boolean }> => {
+    const { locals, request } = getRequestEvent();
 
-export const deleteApiKey = form(async (form): Promise<{ success: boolean }> => {
-  const { locals, request } = getRequestEvent();
-
-  const formValidation = validateForm(form, DeleteApiKeyFormSchema);
-  if (!formValidation.success) {
-    locals.logError('Could not delete API Key - Invalid form submission', formValidation.error);
-    locals.sendFlashMessage({
-      title: 'Error',
-      description: 'Could not delete API key. Please inform customer support.'
+    const result = await auth.api.deleteApiKey({
+      body: { keyId: data.id },
+      headers: request.headers
     });
-    return { success: false };
+
+    if (!result.success) {
+      locals.sendFlashMessage({
+        title: 'Error',
+        description: 'Failed to delete API key'
+      });
+      return { success: false };
+    }
+
+    return { success: true };
   }
-
-  const result = await auth.api.deleteApiKey({
-    body: { keyId: formValidation.data.id },
-    headers: request.headers
-  });
-
-  if (!result.success) {
-    locals.sendFlashMessage({
-      title: 'Error',
-      description: 'Failed to delete API key'
-    });
-    return { success: false };
-  }
-
-  return { success: true };
-});
+);

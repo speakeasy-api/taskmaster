@@ -43,15 +43,20 @@
 {/snippet}
 
 {#snippet actionRight(task: { id: string; status: string | null })}
-  <form {...updateTaskStatus.for(task.id)} onchange={(e) => e.currentTarget.requestSubmit()}>
-    <input type="hidden" name="id" value={task.id} />
-    <select name="status" class="select w-fit grow-0 py-1 text-xs" value={task.status}>
-      <option value={null}>No Status</option>
-      {#each taskStatusEnum.enumValues as statusOption (statusOption)}
-        <option value={statusOption}>{snakeToTitleCase(statusOption)}</option>
-      {/each}
-    </select>
-  </form>
+  <svelte:boundary>
+    {#snippet pending()}
+      <div>Loading...</div>
+    {/snippet}
+    <form {...updateTaskStatus.for(task.id)} onchange={(e) => e.currentTarget.requestSubmit()}>
+      <input type="hidden" name="id" value={task.id} />
+      <select name="status" class="select w-fit grow-0 py-1 text-xs" value={task.status}>
+        <option value={null}>No Status</option>
+        {#each taskStatusEnum.enumValues as statusOption (statusOption)}
+          <option value={statusOption}>{snakeToTitleCase(statusOption)}</option>
+        {/each}
+      </select>
+    </form>
+  </svelte:boundary>
   <form>
     <button
       name="id"

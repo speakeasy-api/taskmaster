@@ -1,24 +1,13 @@
 import { form, getRequestEvent } from '$app/server';
 import { oauthApplications } from '$lib/db/schemas/auth';
-import { validateForm } from '$lib/server/remote-fns';
 import { error, redirect } from '@sveltejs/kit';
 import { eq } from 'drizzle-orm';
 import { DeleteApplicationRequest } from './page.schemas';
 
-export const deleteApp = form(async (formData) => {
+export const deleteApp = form(DeleteApplicationRequest, async (data) => {
   const { locals } = getRequestEvent();
 
-  const validatedReq = validateForm(formData, DeleteApplicationRequest);
-
-  if (!validatedReq.success) {
-    locals.sendFlashMessage({
-      title: 'Error',
-      description: 'There was an error with your request.'
-    });
-    error(400, 'Invalid request');
-  }
-
-  const { id } = validatedReq.data;
+  const { id } = data;
 
   const result = await locals.db.delete(oauthApplications).where(eq(oauthApplications.id, id));
 

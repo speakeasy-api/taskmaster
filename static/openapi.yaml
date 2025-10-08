@@ -25,14 +25,16 @@ components:
           authorizationUrl: /api/oauth2/authorize
           tokenUrl: /api/oauth2/token
           scopes:
-            - openid
-            - profile
-            - email
+            openid: Access to OpenID Connect information
+            profile: Access to user profile information
+            email: Access to user email address
+
     apiKey:
       type: apiKey
-      in: header
-      name: x-api-key
       description: API key for authentication. Obtain from your account settings.
+      name: x-api-key
+      in: header
+
 
   schemas:
     TaskStatus:
@@ -229,6 +231,7 @@ paths:
                   $ref: '#/components/schemas/TaskStatus'
               required:
                 - title
+                - project_id
                 - description
             examples:
               basic_task:

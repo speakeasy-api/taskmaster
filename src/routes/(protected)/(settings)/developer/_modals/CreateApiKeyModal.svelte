@@ -34,6 +34,8 @@
   };
 
   const defaultName = uniqueNamesGenerator({ dictionaries: [adjectives, animals], separator: '-' });
+
+  createApiKey.fields.name.set(defaultName);
 </script>
 
 <Modal
@@ -50,30 +52,22 @@
 </Modal>
 
 {#snippet createView()}
-  {@const formResult = createApiKey.result}
-  {@const errors = createApiKey.result?.errors}
   {@const submitting = !!createApiKey.pending}
   <ActionCard title="New API Key" subtitle="Generate a new API key to integrate with our services.">
     {#snippet body()}
       <form id="create-api-key-form" {...createApiKey} class="space-y-4">
-        {#if createApiKey.result?.message}
-          <div
-            class="alert rounded-lg border border-success-200 bg-success-50 p-3 text-success-800">
-            <span class="font-medium">{createApiKey.result.message}</span>
-          </div>
-        {/if}
-
         <TextInput
           label="API Key Name"
           placeholder="My awesome app"
-          name="name"
-          status={formResult?.errors ? 'error' : undefined}
+          {...createApiKey.fields.name.as('text')}
+          status={createApiKey.fields.name.issues() ? 'error' : undefined}
           disabled={submitting}
-          required
           defaultvalue={defaultName}
           autocomplete="off">
           {#snippet error()}
-            <span class="mt-1 text-sm text-error-600">{errors?.name}</span>
+            <span class="mt-1 text-sm text-error-600">
+              {createApiKey.fields.name.issues()?.map((i) => i.message)}
+            </span>
           {/snippet}
         </TextInput>
       </form>

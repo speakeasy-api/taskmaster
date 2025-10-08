@@ -1,22 +1,11 @@
 import { form, getRequestEvent } from '$app/server';
 import { SQL_NOW } from '$lib/db/helpers';
 import { taskDependencyTypeEnum, taskDependencies } from '$lib/db/schemas/schema';
-import { validateForm } from '$lib/server/remote-fns';
 import { and, eq, type InferEnum } from 'drizzle-orm';
-import z from 'zod';
-
-// Simplified schema - combine validation logic
-const UpdateTaskDependencyTypeRequest = z.object({
-  id: z.string().uuid(),
-  original_task_id: z.string().uuid(),
-  dependency_type: z.string().refine(
-    (type) => {
-      const baseType = type.replace(':invert', '');
-      return (taskDependencyTypeEnum.enumValues as string[]).includes(baseType);
-    },
-    { message: 'Invalid dependency type' }
-  )
-});
+import {
+  DeleteTaskDependencyRequest,
+  UpdateTaskDependencyTypeRequest
+} from './RelationDropdownMenu.schemas';
 
 // Single function to parse dependency type
 function parseDependencyType(type: string) {
@@ -26,17 +15,11 @@ function parseDependencyType(type: string) {
   return { isInverted, baseType };
 }
 
-export const updateDependencyTypeForm = form(async (formData) => {
+export const updateDependencyTypeForm = form(UpdateTaskDependencyTypeRequest, async (data) => {
   const { locals } = getRequestEvent();
   const { user } = await locals.validateSession();
 
-  // Validate input
-  const validatedReq = validateForm(formData, UpdateTaskDependencyTypeRequest);
-  if (!validatedReq.success) {
-    return { success: false, errors: validatedReq.error.formErrors };
-  }
-
-  const { id, original_task_id, dependency_type } = validatedReq.data;
+  const { id, original_task_id, dependency_type } = data;
 
   // Fetch existing dependency
   const existingDependency = await locals.db.query.taskDependencies.findFirst({
@@ -90,20 +73,11 @@ export const updateDependencyTypeForm = form(async (formData) => {
   return { success: true };
 });
 
-const DeleteTaskDependencyRequest = z.object({
-  id: z.string().uuid()
-});
-
-export const deleteTaskDependencyForm = form(async (formData) => {
+export const deleteTaskDependencyForm = form(DeleteTaskDependencyRequest, async (data) => {
   const { locals } = getRequestEvent();
   const { user } = await locals.validateSession();
-  const validatedReq = DeleteTaskDependencyRequest.safeParse(Object.fromEntries(formData));
 
-  if (!validatedReq.success) {
-    return { success: false, errors: validatedReq.error.formErrors };
-  }
-
-  const { id } = validatedReq.data;
+  const { id } = data;
 
   const result = await locals.db
     .delete(taskDependencies)

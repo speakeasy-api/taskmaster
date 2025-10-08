@@ -1,21 +1,15 @@
 import { form, getRequestEvent } from '$app/server';
 import { SQL_NOW } from '$lib/db/helpers';
 import { tasks } from '$lib/db/schemas/schema';
-import { validateForm } from '$lib/server/remote-fns';
 import { error, redirect } from '@sveltejs/kit';
 import { eq } from 'drizzle-orm';
 import { DeleteProjectRequest, DeleteTaskRequest, UpdateTaskStatusRequest } from './page.schemas';
 
-export const deleteProject = form(async (formData) => {
+export const deleteProject = form(DeleteProjectRequest, async (data) => {
   const { locals } = getRequestEvent();
 
-  const reqValidation = validateForm(formData, DeleteProjectRequest);
-  if (!reqValidation.success) {
-    return error(400, { message: 'Invalid request data' });
-  }
-
   const result = await locals.services.projects.delete({
-    id: reqValidation.data.id,
+    id: data.id,
     created_by: await locals.getUserId()
   });
 
@@ -38,15 +32,10 @@ export const deleteProject = form(async (formData) => {
   }
 });
 
-export const deleteTask = form(async (formData) => {
+export const deleteTask = form(DeleteTaskRequest, async (data) => {
   const { locals } = getRequestEvent();
 
-  const reqValidation = validateForm(formData, DeleteTaskRequest);
-  if (!reqValidation.success) {
-    return error(400, { message: 'Invalid request data' });
-  }
-
-  const result = await locals.db.delete(tasks).where(eq(tasks.id, reqValidation.data.id));
+  const result = await locals.db.delete(tasks).where(eq(tasks.id, data.id));
 
   if (result.rowCount === 0) {
     return error(404, { message: 'Task not found' });
@@ -55,21 +44,12 @@ export const deleteTask = form(async (formData) => {
   return { success: true };
 });
 
-export const updateTaskStatus = form(async (formData) => {
+export const updateTaskStatus = form(UpdateTaskStatusRequest, async ({ id, status }) => {
   const { locals } = getRequestEvent();
 
-  const validatedReq = validateForm(formData, UpdateTaskStatusRequest);
-
-  if (!validatedReq.success) {
-    return error(400, { message: 'Invalid request data' });
-  }
-
-  const { id, status } = validatedReq.data;
-
-  const result = await locals.db
-    .update(tasks)
-    .set({ status, updated_at: SQL_NOW })
-    .where(eq(tasks.id, id));
+  const result = await locals.session.useDb((db) =>
+    db.update(tasks).set({ status, updated_at: SQL_NOW }).where(eq(tasks.id, id))
+  );
 
   if (result.rowCount === 0) {
     return error(404, { message: 'Task not found or you do not have permission to update it.' });

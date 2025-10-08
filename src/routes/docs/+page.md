@@ -1,5 +1,5 @@
 ---
-title: Getting Started 
+title: Getting Started
 ---
 
 **Taskmaster** is a comprehensive demo application designed to showcase the
@@ -11,7 +11,7 @@ capabilities.
 ### Perfect for Demonstrating
 
 - **🏗️ Terraform Provider Generation** - Auto-generate infrastructure-as-code providers
-- **📦 SDK Generation** - Create type-safe client libraries across multiple programming languages  
+- **📦 SDK Generation** - Create type-safe client libraries across multiple programming languages
 - **🤖 MCP Server Development** - Build Model Context Protocol servers using [Gram](https://getgram.ai)
 - **📚 API Documentation** - Showcase OpenAPI specification and interactive documentation
 - **🔐 Authentication Patterns** - Multiple auth paradigms in one application
@@ -24,7 +24,7 @@ industry-standard flows:
 ### Supported Authentication Methods
 
 - **API Keys** - Simple, long-lived authentication for server-to-server integrations
-- **OAuth 2.0 Client Credentials** - Machine-to-machine authentication for automated systems  
+- **OAuth 2.0 Client Credentials** - Machine-to-machine authentication for automated systems
 - **OAuth 2.0 Authorization Code** - User authorization flow for web and mobile applications
 - **Email/Password Authentication** - Traditional user authentication with Better Auth integration
 - **Dynamic Client Registration** - Programmatic OAuth client creation and management
@@ -54,6 +54,7 @@ For applications integrating with Taskmaster's OAuth flows:
 **[🔧 OIDC Well-Known Configuration](https://taskmaster-speakeasyapi.vercel.app/api/auth/.well-known/openid-configuration)**
 
 This endpoint provides:
+
 - Authorization and token endpoint URLs
 - Supported grant types and response modes
 - Available scopes and claims
@@ -62,7 +63,7 @@ This endpoint provides:
 ## Getting Started
 
 1. **Explore the Authentication Flows** - Use the navigation menu to learn about different auth methods
-2. **Review the API Documentation** - Check out the OpenAPI specification for endpoint details  
+2. **Review the API Documentation** - Check out the OpenAPI specification for endpoint details
 3. **Try the Live Application** - Sign up and create projects to see the API in action
 4. **Generate SDKs** - Use Speakeasy to generate client libraries from the OpenAPI spec
 5. **Build Integrations** - Create your own applications using Taskmaster's APIs

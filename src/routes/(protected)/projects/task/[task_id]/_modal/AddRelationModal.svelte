@@ -1,17 +1,17 @@
 <script lang="ts">
   import ActionCard from '$lib/ui/cards/ActionCard.svelte';
   import { Combobox, Modal } from '@skeletonlabs/skeleton-svelte';
-  import { getTasks, addRelationForm } from './AddRelationModal.remote';
   import { resource, watch } from 'runed';
-  import { page } from '$app/state';
+  import { addRelationForm, getTasks } from './AddRelationModal.remote';
 
   type Props = {
     projectId: string;
     excludeTaskIds?: string[];
+    taskId: string;
     open?: boolean;
   };
 
-  let { projectId, excludeTaskIds = [], open = $bindable(false) }: Props = $props();
+  let { projectId, taskId, excludeTaskIds = [], open = $bindable(false) }: Props = $props();
 
   let relatedTaskIdInputRef: HTMLInputElement;
 
@@ -36,21 +36,11 @@
     { lazy: true }
   );
 
-  const addRelationFormProps = addRelationForm.enhance(async ({ data, submit, form }) => {
-    const depType = data.get('dependency_type') as string;
-    if (depType.endsWith(':invert')) {
-      data.set('task_id', data.get('related_task_id') as string);
-      data.set('related_task_id', page.params.task_id!);
-      data.set('dependency_type', depType.replace(':invert', ''));
-    } else {
-      data.set('task_id', page.params.task_id!);
-    }
-
+  const addRelationFormProps = addRelationForm.enhance(async ({ submit, form }) => {
     await submit();
 
     if (addRelationForm.result?.success) {
       form.reset();
-      handleClose();
     }
   });
 
@@ -64,8 +54,8 @@
     <ActionCard title="Add Dependency" subtitle="Add a related item to this task.">
       {#snippet body()}
         <form id="add-relation-form" {...addRelationFormProps}>
+          <input {...addRelationForm.fields.task_id.as('hidden', taskId)} />
           <label for="task_dependency" class="block text-sm font-medium">Related Task</label>
-
           <input
             bind:this={relatedTaskIdInputRef}
             type="hidden"
@@ -82,7 +72,10 @@
             required />
 
           <label for="dependency_type" class="mt-4 block text-sm font-medium">Relation Type</label>
-          <select id="dependency_type" name="dependency_type" class="input w-full" required>
+          <select
+            {...addRelationForm.fields.dependency_type.as('select')}
+            class="input w-full"
+            required>
             <option value="" disabled selected>Select a dependency type</option>
             <option value="relates_to">Relates To</option>
             <option value="blocks">Blocks</option>

@@ -3,7 +3,7 @@ import { auth } from '$lib/auth';
 import { sendFlashMessage } from '$lib/server/event-utilities';
 import { error, redirect } from '@sveltejs/kit';
 
-export const deleteUserAccount = form(async () => {
+export const deleteUserAccount = form('unchecked', async () => {
   const { request, locals } = getRequestEvent();
 
   let result;
