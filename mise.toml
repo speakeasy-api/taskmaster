@@ -1,0 +1,29 @@
+[tools]
+"ubi:speakeasy-api/gram" = { version = '@gram/cli@0.9.0', tag_regex = '^@gram\/cli' }
+
+
+[tasks.gram-deploy]
+description = "Zip and deploy each folder in gram/ directory to Gram API"
+run = '''
+mkdir -p .gram
+
+echo "Zipping functions..."
+for dir in gram/*/; do
+  name=$(basename "$dir")
+  echo "  Zipping $name..."
+  rm -f ".gram/${name}.zip"
+  (cd "$dir" && zip -r "../../.gram/${name}.zip" .)
+done
+
+echo "Deploying functions..."
+for zip in .gram/*.zip; do
+  name=$(basename "$zip" .zip)
+  echo "  Deploying $name..."
+  gram upload --type function \
+    --location "$zip" \
+    --runtime nodejs:22 \
+    --name "$name" \
+    --slug "$name"
+done
+'''
+

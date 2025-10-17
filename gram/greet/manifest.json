@@ -1,0 +1,9 @@
+{
+  "version": "0.0.0",
+  "tools": [
+    {
+      "name": "greet",
+      "description": "Get a hello-world message and a unique identifier."
+    }
+  ]
+}
