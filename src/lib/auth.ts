@@ -36,7 +36,11 @@ export const auth = betterAuth({
       rateLimit: { enabled: false },
       schema: {
         apikey: {
-          fields: {}
+          fields: {
+            projectId: {
+              type: 'string'
+            }
+          }
         }
       }
     }),
