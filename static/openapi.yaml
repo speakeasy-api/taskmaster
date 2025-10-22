@@ -16,6 +16,18 @@ security:
   - oauthToken: []
   - apiKey: []
 
+x-speakeasy-name-override:
+  - operationId: ^list.*
+    methodNameOverride: list
+  - operationId: ^create.*
+    methodNameOverride: create
+  - operationId: ^update.*
+    methodNameOverride: update
+  - operationId: ^delete.*
+    methodNameOverride: delete
+  - operationId: ^get.*
+    methodNameOverride: get
+
 components:
   securitySchemes:
     oauthToken:
@@ -296,7 +308,7 @@ paths:
                     type: string
                     example: 'Failed to create task'
     get:
-      operationId: getTasks
+      operationId: listTasks
       summary: Get all tasks for authenticated user
       description: Retrieves all tasks belonging to the authenticated user in Taskmaster. Optionally filter by project.
       security:
@@ -494,7 +506,7 @@ paths:
 
   /tasks/{task_id}/relationships:
     get:
-      operationId: getTaskRelationships
+      operationId: listTaskRelationships
       summary: Get all relationships for a specific task
       description: Retrieves all relationships for a specific task belonging to the authenticated user in Taskmaster. Optionally filter by relationship type.
       security:
@@ -919,7 +931,7 @@ paths:
                     type: string
                     example: 'Failed to create project'
     get:
-      operationId: getProjects
+      operationId: listProjects
       summary: Get all projects for authenticated user
       description: Retrieves all projects belonging to the authenticated user in Taskmaster
       security:
@@ -1006,7 +1018,7 @@ paths:
 
   /admin/projects:
     get:
-      operationId: getAdminProjects
+      operationId: listAdminProjects
       summary: Get all projects (admin only)
       description: Retrieves all projects in the system with optional filtering. Only available to users with @speakeasy.com email domain.
       security:
