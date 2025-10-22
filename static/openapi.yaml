@@ -208,6 +208,8 @@ components:
 paths:
   /tasks:
     post:
+      tags:
+        - task
       operationId: createTask
       summary: Create a new task
       description: Creates a new task for the authenticated user in Taskmaster
@@ -308,6 +310,8 @@ paths:
                     type: string
                     example: 'Failed to create task'
     get:
+      tags:
+        - task
       operationId: listTasks
       summary: Get all tasks for authenticated user
       description: Retrieves all tasks belonging to the authenticated user in Taskmaster. Optionally filter by project.
@@ -366,6 +370,8 @@ paths:
 
   /tasks/{id}:
     put:
+      tags:
+        - task
       operationId: updateTask
       summary: Update a specific task
       description: Updates a task by ID for the authenticated user in Taskmaster. All fields are optional for partial updates.
@@ -464,6 +470,8 @@ paths:
                 type: string
                 example: 'Not Found'
     delete:
+      tags:
+        - task
       operationId: deleteTask
       summary: Delete a specific task
       description: Deletes a task by ID for the authenticated user in Taskmaster
@@ -506,6 +514,8 @@ paths:
 
   /tasks/{task_id}/relationships:
     get:
+      tags:
+        - task.relationship
       operationId: listTaskRelationships
       summary: Get all relationships for a specific task
       description: Retrieves all relationships for a specific task belonging to the authenticated user in Taskmaster. Optionally filter by relationship type.
@@ -569,6 +579,8 @@ paths:
                 type: string
                 example: 'Not Found'
     post:
+      tags:
+        - task.relationship
       operationId: createTaskRelationship
       summary: Create a new task relationship
       description: >
@@ -690,6 +702,8 @@ paths:
 
   /tasks/{task_id}/relationships/{relationship_id}:
     put:
+      tags:
+        - task.relationship
       operationId: updateTaskRelationship
       summary: Update a specific task relationship
       description: Updates the relationship type for a specific task relationship belonging to the authenticated user in Taskmaster
@@ -785,6 +799,8 @@ paths:
                     type: string
                     example: 'Failed to update task relationship'
     delete:
+      tags:
+        - task.relationship
       operationId: deleteTaskRelationship
       summary: Delete a specific task relationship
       description: Deletes a specific task relationship belonging to the authenticated user in Taskmaster
@@ -848,6 +864,8 @@ paths:
 
   /projects:
     post:
+      tags:
+        - project
       operationId: createProject
       summary: Create a new project
       description: Creates a new project for the authenticated user in Taskmaster
@@ -931,6 +949,8 @@ paths:
                     type: string
                     example: 'Failed to create project'
     get:
+      tags:
+        - project
       operationId: listProjects
       summary: Get all projects for authenticated user
       description: Retrieves all projects belonging to the authenticated user in Taskmaster
@@ -976,6 +996,8 @@ paths:
 
   /projects/{id}:
     delete:
+      tags:
+        - project
       operationId: deleteProject
       summary: Delete a specific project
       description: Deletes a project by ID for the authenticated user in Taskmaster. Associated tasks will be automatically deleted due to cascade delete.
@@ -1018,6 +1040,8 @@ paths:
 
   /admin/projects:
     get:
+      tags:
+        - admin.project
       operationId: listAdminProjects
       summary: Get all projects (admin only)
       description: Retrieves all projects in the system with optional filtering. Only available to users with @speakeasy.com email domain.
@@ -1092,9 +1116,9 @@ paths:
                 example: 'Forbidden'
 
 tags:
-  - name: tasks
+  - name: task
     description: Operations related to task management in Taskmaster
-  - name: projects
+  - name: project
     description: Operations related to project management in Taskmaster
   - name: admin
     description: Administrative operations (restricted to @speakeasy.com users)
